@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,35 +16,45 @@ namespace TicketSales.Models
         public int Id { get; set; }
         
         [Display(Name = "Nome do Evento: ")]
-        [Required(ErrorMessage = "Por favor, preencha o campo {0}.")]
+        [Required(ErrorMessage = "O nome é obrigatório.")]
         public string Nome { get; set; }
         
         [Display(Name = "Quantidade de Lugares")]
-        [Required(ErrorMessage = "Por favor, preencha o campo {0}.")]
-        [Range(0, int.MaxValue, ErrorMessage = "A quantidade deve ser maior ou igual a zero.")]
+        [Required]
         public int QuantidadeLugares { get; set; }
         
         [Display(Name = "Quantidade de Lugares")]
-        [Required(ErrorMessage = "Por favor, preencha o campo {0}.")]
-        [Range(0, int.MaxValue, ErrorMessage = "A quantidade deve ser maior ou igual a zero.")]
         public int LugaresDisponiveis { get; set; }
 
-        [Display(Name = "Valor do evento: ")]
-        [Required(ErrorMessage = "Por favor, preencha o campo {0}.")]
-        [Range(0, int.MaxValue, ErrorMessage = "O valor deve ser maior ou igual a zero.")]
+        [Display(Name = "Valor")]
+        [Required]
+        [Column(TypeName = "decimal(18, 2)")]
         public decimal Valor { get; set; }
         
         public string Categoria { get; set; }
         public bool Ativo { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.Now;
-        public List<Assento> Assentos { get; set; } = new List<Assento>();
         public string? Imagem { get; set; }
+
+        public List<Assento> Assentos { get; set; } = new List<Assento>();
+
     }
     public class Assento
     {
         [Key]
+        public int Id { get; set; }
+        
+        [Display(Name = "Código do Assento")]
+        [Required(ErrorMessage = "Por favor, preencha o campo {0}.")]
         public string CodigoAssento { get; set; }
         public bool Ocupado { get; set; } = false;
+
+        // Relacionamentos
+        public Evento Evento { get; set; }
+        public int EventoId { get; set; }
+        
+        public int? CompraId { get; set; }
+        public Compra? Compra { get; set; }
     }
 
     public class GerenciadorEventos

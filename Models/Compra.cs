@@ -39,7 +39,11 @@ namespace TicketSales.Models
 
         // Relacionamentos
         public Cliente Cliente { get; set; }
+        public int ClienteId { get; set; }
+        
+        public int EventoId { get; set; }
         public Evento Evento { get; set; }
+     
         public List<Assento> AssentosSelecionados { get; set; } = new List<Assento>();
     }
 

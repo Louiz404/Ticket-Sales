@@ -24,19 +24,26 @@ namespace TicketSales.Migrations
 
             modelBuilder.Entity("TicketSales.Models.Assento", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("CodigoAssento")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("CompraId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("EventoId")
+                    b.Property<int>("EventoId")
                         .HasColumnType("int");
 
                     b.Property<bool>("Ocupado")
                         .HasColumnType("bit");
 
-                    b.HasKey("CodigoAssento");
+                    b.HasKey("Id");
 
                     b.HasIndex("CompraId");
 
@@ -139,7 +146,7 @@ namespace TicketSales.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Valor")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.HasKey("Id");
 
@@ -148,13 +155,19 @@ namespace TicketSales.Migrations
 
             modelBuilder.Entity("TicketSales.Models.Assento", b =>
                 {
-                    b.HasOne("TicketSales.Models.Compra", null)
+                    b.HasOne("TicketSales.Models.Compra", "Compra")
                         .WithMany("AssentosSelecionados")
                         .HasForeignKey("CompraId");
 
-                    b.HasOne("TicketSales.Models.Evento", null)
+                    b.HasOne("TicketSales.Models.Evento", "Evento")
                         .WithMany("Assentos")
-                        .HasForeignKey("EventoId");
+                        .HasForeignKey("EventoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Compra");
+
+                    b.Navigation("Evento");
                 });
 
             modelBuilder.Entity("TicketSales.Models.Compra", b =>

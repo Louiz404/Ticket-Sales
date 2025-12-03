@@ -81,14 +81,16 @@ namespace TicketSales.Migrations
                 name: "Assentos",
                 columns: table => new
                 {
-                    CodigoAssento = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CodigoAssento = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Ocupado = table.Column<bool>(type: "bit", nullable: false),
-                    CompraId = table.Column<int>(type: "int", nullable: true),
-                    EventoId = table.Column<int>(type: "int", nullable: true)
+                    EventoId = table.Column<int>(type: "int", nullable: false),
+                    CompraId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Assentos", x => x.CodigoAssento);
+                    table.PrimaryKey("PK_Assentos", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Assentos_Compras_CompraId",
                         column: x => x.CompraId,
@@ -98,7 +100,8 @@ namespace TicketSales.Migrations
                         name: "FK_Assentos_Eventos_EventoId",
                         column: x => x.EventoId,
                         principalTable: "Eventos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

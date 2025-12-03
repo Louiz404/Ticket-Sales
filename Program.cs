@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TicketSales.Data;
+using TicketSales.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<TicketContext>(options =>
     options.UseSqlServer(connectionString));
+
+// Registra o serviço para ser usado nos Controllers
+builder.Services.AddScoped<TicketService>();
 
 var app = builder.Build();
 

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ticket-Sales", "Ticket-Sales.csproj", "{2BB38879-996A-CC55-CD62-9F56A8A3F064}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketSales", "TicketSales.csproj", "{45F0B4DA-96AC-3E83-75AB-0AF2A92E6573}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2BB38879-996A-CC55-CD62-9F56A8A3F064}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2BB38879-996A-CC55-CD62-9F56A8A3F064}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2BB38879-996A-CC55-CD62-9F56A8A3F064}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2BB38879-996A-CC55-CD62-9F56A8A3F064}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45F0B4DA-96AC-3E83-75AB-0AF2A92E6573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45F0B4DA-96AC-3E83-75AB-0AF2A92E6573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45F0B4DA-96AC-3E83-75AB-0AF2A92E6573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45F0B4DA-96AC-3E83-75AB-0AF2A92E6573}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E785F556-0111-433B-A6AC-C610CE893EE2}
+		SolutionGuid = {72E1A9FD-10E0-42A2-ADAE-7067504C9661}
 	EndGlobalSection
 EndGlobal

@@ -1,68 +1,54 @@
 ﻿@model TicketSales.Models.Evento
 
-@{
-    ViewData["Title"] = "View";
-}
+<div class="container mt-4">
+    <h2>Cadastrar Novo Evento</h2>
+    <hr />
 
-<h1>View</h1>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+        </div>
+    }
 
-<h4>Evento</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="View">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Nome" class="control-label"></label>
-                <input asp-for="Nome" class="form-control" />
-                <span asp-validation-for="Nome" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="QuantidadeLugares" class="control-label"></label>
-                <input asp-for="QuantidadeLugares" class="form-control" />
-                <span asp-validation-for="QuantidadeLugares" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LugaresDisponiveis" class="control-label"></label>
-                <input asp-for="LugaresDisponiveis" class="form-control" />
-                <span asp-validation-for="LugaresDisponiveis" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Valor" class="control-label"></label>
-                <input asp-for="Valor" class="form-control" />
-                <span asp-validation-for="Valor" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Categoria" class="control-label"></label>
-                <input asp-for="Categoria" class="form-control" />
-                <span asp-validation-for="Categoria" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Ativo" /> @Html.DisplayNameFor(model => model.Ativo)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataCriacao" class="control-label"></label>
-                <input asp-for="DataCriacao" class="form-control" />
-                <span asp-validation-for="DataCriacao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Imagem" class="control-label"></label>
-                <input asp-for="Imagem" class="form-control" />
-                <span asp-validation-for="Imagem" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Criar" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label asp-for="Nome" class="form-label"></label>
+                    <input asp-for="Nome" class="form-control" placeholder="Ex: Show de Rock" />
+                    <span asp-validation-for="Nome" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Imagem do Evento</label>
+                    <input type="file" name="foto" class="form-control" accept="image/*" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Categoria" class="form-label"></label>
+                    <input asp-for="Categoria" class="form-control" placeholder="Ex: Musical" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="QuantidadeLugares" class="form-label"></label>
+                        <input asp-for="QuantidadeLugares" type="number" class="form-control" />
+                        <div class="form-text">Assentos serão gerados automaticamente.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Valor" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input asp-for="Valor" type="number" step="0.01" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">Salvar Evento</button>
+                <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+            </form>
+        </div>
     </div>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

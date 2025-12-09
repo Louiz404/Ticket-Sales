@@ -1,0 +1,59 @@
+﻿@model List<TicketSales.Models.Evento>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Eventos Disponíveis</h2>
+        <a asp-action="Criar" class="btn btn-primary">Novo Evento</a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success">@TempData["Sucesso"]</div>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Erro"]</div>
+    }
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Imagem</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Tipo</th>
+                <th>Lugares (Disp/Total)</th>
+                <th>Valor</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.Imagem))
+                        {
+                            <img src="~/imagens/@item.Imagem" alt="Imagem do Evento" style="width: 80px; height: 50px; object-fit: cover; border-radius: 5px;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem foto</span>
+                        }
+                    </td>
+                    <td>@item.Nome</td>
+                    <td>@item.Nome</td>
+                    <td>@item.Categoria</td>
+                    <td>@item.LugaresDisponiveis / @item.QuantidadeLugares</td>
+                    <td>R$ @item.Valor</td>
+                    <td>
+                        <form asp-action="Desativar" method="post" onsubmit="return confirm('Tem certeza que deseja desativar este evento?');">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

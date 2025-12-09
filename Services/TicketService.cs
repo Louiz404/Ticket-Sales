@@ -42,10 +42,15 @@ namespace TicketSales.Services
                 .Include(e => e.Assentos)
                 .FirstOrDefault(e => e.Id == eventoId);
 
+           
             if (cliente == null || !cliente.Ativo) throw new Exception("Cliente inválido ou inativo");
 
             if (evento == null || !evento.Ativo) throw new Exception("Evento inválido ou inativo");
-            
+
+            if (assentosIds == null || !assentosIds.Any()) throw new Exception("Nenhum assento foi selecionado.");
+
+           
+
             // Validar Assentos
             var assentosSelecionados = evento.Assentos
                 .Where(a => assentosIds.Contains(a.Id) && !a.Ocupado)
@@ -57,10 +62,12 @@ namespace TicketSales.Services
             foreach (var assento in assentosSelecionados)
             {
                 assento.Ocupado = true;
+                _ticketContext.Entry(assento).State = EntityState.Modified;
             }
             evento.LugaresDisponiveis -= assentosSelecionados.Count;
+            _ticketContext.Entry(evento).State = EntityState.Modified; // Força update do evento também
 
-            
+
             var compra = new Compra
             {
                 Cliente = cliente,
@@ -72,7 +79,7 @@ namespace TicketSales.Services
             };
 
             _ticketContext.Compras.Add(compra);
-            _ticketContext.SaveChangesAsync();
+            _ticketContext.SaveChanges();
         }
 
         public void CancelarCompra(int compraId)
@@ -128,7 +135,7 @@ namespace TicketSales.Services
 
         // Metodos Evento de ação: POST
 
-        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria)
+        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem)
         {
 
             if (string.IsNullOrWhiteSpace(nome))
@@ -161,6 +168,7 @@ namespace TicketSales.Services
                     Ativo = true,
                     DataCriacao = DateTime.Now,
                     Assentos = listaAssentos,
+                    Imagem = nomeImagem
                 };
                 
                 _ticketContext.Eventos.Add(evento);

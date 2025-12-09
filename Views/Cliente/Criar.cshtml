@@ -1,0 +1,37 @@
+﻿@model TicketSales.Models.Cliente
+
+<div class="container mt-4">
+    <h2>Novo Cliente</h2>
+    <hr />
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">@Html.ValidationSummary()</div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Criar" method="post">
+
+                <div class="mb-3">
+                    <label>Nome Completo</label>
+                    <input asp-for="Nome" class="form-control" placeholder="Ex: João da Silva" />
+                </div>
+
+                <div class="mb-3">
+                    <label>E-mail</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="nome@exemplo.com" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Idade</label>
+                    <input asp-for="Idade" type="number" class="form-control" />
+                    <small class="text-muted">É necessário ser maior de 18 anos.</small>
+                </div>
+
+                <button type="submit" class="btn btn-success">Salvar Cadastro</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>

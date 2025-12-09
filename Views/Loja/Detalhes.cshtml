@@ -1,0 +1,101 @@
+﻿@model TicketSales.Models.Evento
+
+<style>
+    /* Estilo para as bolinhas dos assentos */
+    .assento-box {
+        width: 40px;
+        height: 40px;
+        margin: 5px;
+        border-radius: 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .livre {
+        background-color: #28a745;
+        color: white;
+    }
+    /* Verde */
+    .ocupado {
+        background-color: #dc3545;
+        color: white;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    /* Vermelho */
+
+    /* Esconde o checkbox real, vamos usar o visual da div */
+    .chk-assento {
+        display: none;
+    }
+
+        /* Quando o checkbox estiver marcado, muda a cor da div vizinha */
+        .chk-assento:checked + .assento-box {
+            background-color: #007bff; /* Azul quando selecionado */
+            border: 2px solid #0056b3;
+        }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(Model.Imagem))
+            {
+                <img src="~/imagens/@Model.Imagem" class="img-fluid rounded mb-3" />
+            }
+            <h2>@Model.Nome</h2>
+            <h4 class="text-success">R$ @Model.Valor</h4>
+            <p>Selecione os assentos no mapa ao lado.</p>
+
+            @if (TempData["Erro"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Erro"]</div>
+            }
+        </div>
+
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h5 class="card-title">Mapa de Assentos</h5>
+                <hr />
+
+                <form asp-action="Comprar" method="post">
+                    <input type="hidden" name="eventoId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label>ID do Cliente (Simulação):</label>
+                        <input type="number" name="clienteId" class="form-control" required placeholder="Digite o ID de um cliente cadastrado (ex: 1)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Forma de Pagamento:</label>
+                        <select name="metodoPagamento" class="form-select" asp-items="Html.GetEnumSelectList<TicketSales.Models.TiposDePagamento>()"></select>
+                    </div>
+
+                    <h6 class="mt-4">Escolha seus lugares:</h6>
+                    <div class="d-flex flex-wrap" style="max-width: 600px;">
+                        @foreach (var assento in Model.Assentos)
+                        {
+                            if (assento.Ocupado)
+                            {
+                                <div class="assento-box ocupado" title="Ocupado">@assento.CodigoAssento</div>
+                            }
+                            else
+                            {
+                                <label>
+                                    <input type="checkbox" name="assentosSelecionados" value="@assento.Id" class="chk-assento" />
+                                    <div class="assento-box livre">@assento.CodigoAssento</div>
+                                </label>
+                            }
+                        }
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg mt-4 w-100">Finalizar Compra</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

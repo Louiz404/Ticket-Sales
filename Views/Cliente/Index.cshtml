@@ -1,0 +1,42 @@
+﻿@model List<TicketSales.Models.Cliente>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Clientes Cadastrados</h2>
+        <a asp-action="Criar" class="btn btn-primary">Novo Cliente</a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success">@TempData["Sucesso"]</div>
+    }
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID (Use na Compra)</th>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Idade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-center">@item.Id</td>
+                    <td>@item.Nome</td>
+                    <td>@item.Email</td>
+                    <td>@item.Idade</td>
+                    <td>
+                        <form asp-action="Desativar" method="post" onsubmit="return confirm('Desativar este cliente?');">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button class="btn btn-danger btn-sm">Desativar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

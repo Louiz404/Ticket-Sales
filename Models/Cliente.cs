@@ -10,6 +10,9 @@ namespace TicketSales.Models
     {
         [Key]
         public int Id { get; set; }
+        
+        public string? UsuarioId { get; set; }
+
         [Required(ErrorMessage = "O nome é obrigatório.")]
         public string Nome { get; set; }
         public int Idade { get; set; }

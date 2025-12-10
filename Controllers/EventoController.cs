@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Threading.Tasks;
 using TicketSales.Models;
@@ -6,6 +7,7 @@ using TicketSales.Services;
 
 namespace TicketSales.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class EventoController : Controller
 {
         private readonly TicketService _service;

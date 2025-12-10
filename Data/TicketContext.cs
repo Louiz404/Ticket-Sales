@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TicketSales.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace TicketSales.Data
 {
-    public class TicketContext : DbContext
+    public class TicketContext : IdentityDbContext<IdentityUser>
     {
 
         public TicketContext(DbContextOptions<TicketContext> options) : base(options)

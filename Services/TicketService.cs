@@ -135,7 +135,7 @@ namespace TicketSales.Services
 
         // Metodos Evento de ação: POST
 
-        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem)
+        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem, string organizadorId)
         {
 
             if (string.IsNullOrWhiteSpace(nome))
@@ -168,7 +168,8 @@ namespace TicketSales.Services
                     Ativo = true,
                     DataCriacao = DateTime.Now,
                     Assentos = listaAssentos,
-                    Imagem = nomeImagem
+                    Imagem = nomeImagem,
+                    OrganizadorId = organizadorId,
                 };
                 
                 _ticketContext.Eventos.Add(evento);
@@ -176,13 +177,19 @@ namespace TicketSales.Services
             }
        
 
-        public void DesativarEvento(int id)
+        public void DesativarEvento(int id, string userId, bool isAdmin)
         {
             var evento = _ticketContext.Eventos.Find(id);
 
             if (evento == null) throw new Exception("Evento não encontrado");
 
+            if (!isAdmin && evento.OrganizadorId != userId)
+            {
+                throw new Exception("Você não tem permissão para alterar este evento");
+            }
+
             if (!evento.Ativo) throw new Exception("Evento já está desativado");
+            
 
 
             evento.Ativo = false;
@@ -219,6 +226,18 @@ namespace TicketSales.Services
             evento.LugaresDisponiveis -= assentosDisponiveis.Count;
           _ticketContext.SaveChanges();
            
+        }
+
+        public List<Evento> ListarEventosParaGerenciamento(string userId, bool isAdmin)
+        {
+            if (isAdmin)
+            {
+                return _ticketContext.Eventos.ToList();
+            }
+
+            return _ticketContext.Eventos
+                .Where(e => e.OrganizadorId == userId)
+                .ToList();
         }
 
         // --- MÉTODOS DE CLIENTE ---
@@ -260,6 +279,34 @@ namespace TicketSales.Services
 
             _ticketContext.SaveChanges();
             return $"O cliente: {cliente.Nome} foi desativado com sucesso";
+        }
+
+        public void CadastrarClienteVinculado(string nome, string email, int idade, string usuarioId)
+        {
+            if (string.IsNullOrEmpty(nome)) throw new ArgumentException("Digite um nome válido");
+
+            if (idade < 18) throw new ArgumentException("É necessário ser maior de 18 anos");
+
+            if (string.IsNullOrEmpty(email)) /*|| !email.Contains("@"))*/ throw new ArgumentException("Digite um E-mail válido");
+
+            var clientes = new Cliente
+            {
+                Nome = nome,
+                Email = email,
+                Idade = idade,
+                Ativo = true,
+                DataCadastro = DateTime.Now,
+                UsuarioId = usuarioId
+            };
+
+            _ticketContext.Clientes.Add(clientes);
+            _ticketContext.SaveChanges();
+        }
+
+        public Cliente ObterClientePorUsuarioId(string usuarioId)
+        {
+            return _ticketContext.Clientes
+                .FirstOrDefault(c => c.UsuarioId == usuarioId);
         }
 
     }

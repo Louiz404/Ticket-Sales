@@ -30,6 +30,8 @@ namespace TicketSales.Models
         [Required]
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Valor { get; set; }
+
+        public string? OrganizadorId { get; set; }
         
         public string Categoria { get; set; }
         public bool Ativo { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TicketSales.Models;
 using TicketSales.Services;
 
@@ -26,11 +27,17 @@ namespace TicketSales.Controllers
         }
 
         [HttpPost]
-        public IActionResult Comprar(int eventoId, int clienteId, List<int> assentosSelecionados, TiposDePagamento metodoPagamento)
+        public IActionResult Comprar(int eventoId,List<int> assentosSelecionados, TiposDePagamento metodoPagamento)
         {
             try
             {
-                _service.RegistrarCompra(clienteId, eventoId, assentosSelecionados, metodoPagamento);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var cliente = _service.ObterClientePorUsuarioId(userId);
+
+                if (cliente == null) throw new Exception("Seu usuario não tem um perfil de cliente associado");
+
+
+                _service.RegistrarCompra(cliente.Id, eventoId, assentosSelecionados, metodoPagamento); 
                 return RedirectToAction("Sucesso");
             }
             catch (Exception ex)

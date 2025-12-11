@@ -66,11 +66,6 @@
                     <input type="hidden" name="eventoId" value="@Model.Id" />
 
                     <div class="mb-3">
-                        <label>ID do Cliente (Simulação):</label>
-                        <input type="number" name="clienteId" class="form-control" required placeholder="Digite o ID de um cliente cadastrado (ex: 1)" />
-                    </div>
-
-                    <div class="mb-3">
                         <label>Forma de Pagamento:</label>
                         <select name="metodoPagamento" class="form-select" asp-items="Html.GetEnumSelectList<TicketSales.Models.TiposDePagamento>()"></select>
                     </div>

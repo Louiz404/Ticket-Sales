@@ -1,12 +1,46 @@
-﻿<h2>Criar Conta</h2>
-<form asp-action="Register" method="post">
-    <div class="mb-3">
-        <label>Email</label>
-        <input name="email" class="form-control" />
+﻿@{
+    ViewData["Title"] = "Criar Conta";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="mb-4 text-center">Criar Conta</h2>
+
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <form asp-action="Register" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nome Completo</label>
+                            <input name="nome" class="form-control" placeholder="Seu nome" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Idade</label>
+                            <input name="idade" type="number" class="form-control" min="18" required />
+                            <small class="text-muted">É necessário ser maior de 18 anos.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input name="email" type="email" class="form-control" placeholder="exemplo@email.com" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            <input name="password" type="password" class="form-control" placeholder="Crie uma senha forte" required />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-lg">Cadastrar</button>
+                            <a asp-action="Login" class="btn btn-outline-secondary">Já tenho conta</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Senha</label>
-        <input name="password" type="password" class="form-control" />
-    </div>
-    <button class="btn btn-success">Cadastrar</button>
-</form>
+</div>

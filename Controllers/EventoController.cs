@@ -4,10 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Threading.Tasks;
 using TicketSales.Models;
 using TicketSales.Services;
+using System.Security.Claims;
 
 namespace TicketSales.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Organizador")]
     public class EventoController : Controller
 {
         private readonly TicketService _service;
@@ -22,7 +23,9 @@ namespace TicketSales.Controllers
 
         public IActionResult Index()
         {
-            var eventos = _service.ListarEventosAtivos();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+            var eventos = _service.ListarEventosParaGerenciamento(userId, isAdmin);
             return View(eventos);
         }
 
@@ -61,8 +64,16 @@ namespace TicketSales.Controllers
                         await foto.CopyToAsync(stream);
                     }
                 }
-                    
-                _service.CriarEvento(evento.Nome, evento.QuantidadeLugares, evento.Valor, evento.Categoria, nomeArquivo);
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                _service.CriarEvento(
+                    evento.Nome, 
+                    evento.QuantidadeLugares, 
+                    evento.Valor, 
+                    evento.Categoria, 
+                    nomeArquivo, 
+                    userId);
                 
                 return RedirectToAction("Index");
             }
@@ -79,7 +90,10 @@ namespace TicketSales.Controllers
         {
             try
             {
-                _service.DesativarEvento(id);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isAdmin = User.IsInRole("Admin");
+                
+                _service.DesativarEvento(id, userId, isAdmin);
             }
             catch (Exception ex) {
                 TempData["Erro, não foi possivel concluir a ação"] = ex.Message;

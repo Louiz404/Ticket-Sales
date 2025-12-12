@@ -1,0 +1,133 @@
+﻿@model TicketSales.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    bool isAdmin = ViewBag.IsAdmin ?? false;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fa-solid fa-chart-pie"></i>
+            @(isAdmin ? "Visão Geral (Administrador)" : "Meus Resultados (Organizador)")
+        </h2>
+
+        @if (!isAdmin)
+        {
+            <a asp-controller="Evento" asp-action="Criar" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Novo Evento
+            </a>
+        }
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-dollar-sign"></i> Faturamento Total</h6>
+                    <h3 class="card-text">R$ @Model.FaturamentoTotal.ToString("N2")</h3>
+                    <small>@(isAdmin ? "De todo o sistema" : "Dos seus eventos")</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 shadow">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-ticket"></i> Ingressos Vendidos</h6>
+                    <h3 class="card-text">@Model.TotalIngressosVendidos</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-dark bg-warning mb-3 shadow">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-calendar"></i> Eventos Ativos</h6>
+                    <h3 class="card-text">@Model.TotalEventosAtivos</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary mb-3 shadow">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-users"></i> Alcance de Clientes</h6>
+                    <h3 class="card-text">@Model.TotalClientes</h3>
+                    <small>@(isAdmin ? "Cadastrados no site" : "Compraram seus shows")</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Performance de Vendas (Top 5)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="dashboardChart"></canvas>
+                    @if (Model.DadosGrafico.Count == 0)
+                    {
+                        <p class="text-center text-muted mt-3">Nenhuma venda registrada ainda.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acesso Rápido</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a asp-controller="Evento" asp-action="Index" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-list"></i> Gerenciar Meus Eventos
+                    </a>
+                    @if (isAdmin)
+                    {
+                        <a asp-controller="Cliente" asp-action="Index" class="list-group-item list-group-item-action">
+                            <i class="fa-solid fa-user-gear"></i> Gerenciar Usuários
+                        </a>
+                    }
+                    <a asp-controller="Loja" asp-action="Index" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-store"></i> Ver Loja (Como Cliente)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('dashboardChart').getContext('2d');
+        var labels = @Html.Raw(Json.Serialize(Model.LabelsGrafico));
+        var data = @Html.Raw(Json.Serialize(Model.DadosGrafico));
+
+        if(data.length > 0) {
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Receita (R$)',
+                        data: data,
+                        backgroundColor: '#4e73df',
+                        hoverBackgroundColor: '#2e59d9',
+                        borderColor: '#4e73df',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+}

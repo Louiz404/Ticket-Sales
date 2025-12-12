@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TicketSales.Data;
 using TicketSales.Models;
+using TicketSales.Models.ViewModels;
 
 namespace TicketSales.Services
 {
@@ -42,14 +43,14 @@ namespace TicketSales.Services
                 .Include(e => e.Assentos)
                 .FirstOrDefault(e => e.Id == eventoId);
 
-           
+
             if (cliente == null || !cliente.Ativo) throw new Exception("Cliente inválido ou inativo");
 
             if (evento == null || !evento.Ativo) throw new Exception("Evento inválido ou inativo");
 
             if (assentosIds == null || !assentosIds.Any()) throw new Exception("Nenhum assento foi selecionado.");
 
-           
+
 
             // Validar Assentos
             var assentosSelecionados = evento.Assentos
@@ -97,13 +98,13 @@ namespace TicketSales.Services
             {
                 assento.Ocupado = false;
             }
-            
+
             if (compra.Evento != null)
             {
                 compra.Evento.LugaresDisponiveis += compra.AssentosSelecionados.Count;
             }
 
-                compra.Evento.LugaresDisponiveis += compra.AssentosSelecionados.Count;
+            compra.Evento.LugaresDisponiveis += compra.AssentosSelecionados.Count;
 
             _ticketContext.Compras.Remove(compra);
             _ticketContext.SaveChanges();
@@ -158,24 +159,24 @@ namespace TicketSales.Services
             }
 
 
-                var evento = new Evento
-                {
-                    Nome = nome,
-                    QuantidadeLugares = quantidadeLugares,
-                    LugaresDisponiveis = quantidadeLugares, // inicia com todos disponíveis
-                    Valor = valor,
-                    Categoria = string.IsNullOrEmpty(categoria) ? "Geral" : categoria,
-                    Ativo = true,
-                    DataCriacao = DateTime.Now,
-                    Assentos = listaAssentos,
-                    Imagem = nomeImagem,
-                    OrganizadorId = organizadorId,
-                };
-                
-                _ticketContext.Eventos.Add(evento);
-                _ticketContext.SaveChanges();
-            }
-       
+            var evento = new Evento
+            {
+                Nome = nome,
+                QuantidadeLugares = quantidadeLugares,
+                LugaresDisponiveis = quantidadeLugares, // inicia com todos disponíveis
+                Valor = valor,
+                Categoria = string.IsNullOrEmpty(categoria) ? "Geral" : categoria,
+                Ativo = true,
+                DataCriacao = DateTime.Now,
+                Assentos = listaAssentos,
+                Imagem = nomeImagem,
+                OrganizadorId = organizadorId,
+            };
+
+            _ticketContext.Eventos.Add(evento);
+            _ticketContext.SaveChanges();
+        }
+
 
         public void DesativarEvento(int id, string userId, bool isAdmin)
         {
@@ -189,7 +190,7 @@ namespace TicketSales.Services
             }
 
             if (!evento.Ativo) throw new Exception("Evento já está desativado");
-            
+
 
 
             evento.Ativo = false;
@@ -202,7 +203,7 @@ namespace TicketSales.Services
             var evento = _ticketContext.Eventos
                 .Include(e => e.Assentos)
                 .FirstOrDefault(e => e.Id == eventoId && e.Ativo);
-            
+
             if (evento == null) throw new Exception("Evento não encontrado ou inativo.");
 
 
@@ -212,10 +213,10 @@ namespace TicketSales.Services
             .ToList();
 
             if (assentosDisponiveis.Count != codigosAssentos.Count)
-           throw new Exception("Um ou mais assentos selecionados não estão disponíveis.");
+                throw new Exception("Um ou mais assentos selecionados não estão disponíveis.");
 
             if (assentosDisponiveis.Count > evento.LugaresDisponiveis)
-         throw new Exception("Número de assentos selecionados excede os lugares disponíveis.");
+                throw new Exception("Número de assentos selecionados excede os lugares disponíveis.");
 
             // atualiza o status dos assentos para ocupado
             foreach (var assento in assentosDisponiveis)
@@ -224,8 +225,8 @@ namespace TicketSales.Services
             }
 
             evento.LugaresDisponiveis -= assentosDisponiveis.Count;
-          _ticketContext.SaveChanges();
-           
+            _ticketContext.SaveChanges();
+
         }
 
         public List<Evento> ListarEventosParaGerenciamento(string userId, bool isAdmin)
@@ -246,7 +247,7 @@ namespace TicketSales.Services
         {
             return _ticketContext.Clientes.Where(c => c.Ativo).ToList();
         }
-      
+
         public void CadastrarCliente(string nome, string email, int idade)
         {
             if (string.IsNullOrEmpty(nome)) throw new ArgumentException("Digite um nome válido");
@@ -263,7 +264,7 @@ namespace TicketSales.Services
                 Ativo = true,
                 DataCadastro = DateTime.Now,
             };
-            
+
             _ticketContext.Clientes.Add(clientes);
             _ticketContext.SaveChanges();
         }
@@ -309,5 +310,61 @@ namespace TicketSales.Services
                 .FirstOrDefault(c => c.UsuarioId == usuarioId);
         }
 
+        public DashboardViewModel ObterDadosDashboard(string userId, bool isAdmin)
+        {
+            var model = new DashboardViewModel();
+
+            var queryEventos = _ticketContext.Eventos.AsQueryable();
+
+            if (!isAdmin)
+            {
+                queryEventos = queryEventos.Where(e => e.OrganizadorId == userId);
+            }
+
+            var eventosIds = queryEventos.Select(e => e.Id).ToList();
+
+            var queryCompras = _ticketContext.Compras
+                .Where(c => eventosIds.Contains(c.EventoId));
+
+            var queryAssentos = _ticketContext.Assentos
+                .Where(a => eventosIds.Contains(a.EventoId) && a.Ocupado);
+
+
+            model.FaturamentoTotal = _ticketContext.Compras.Sum(c => c.ValorTotal);
+
+            model.TotalIngressosVendidos = _ticketContext.Assentos.Count(a => a.Ocupado);
+
+            model.TotalEventosAtivos = _ticketContext.Eventos.Count(e => e.Ativo);
+
+            if (isAdmin)
+            {
+             model.TotalClientes = _ticketContext.Clientes.Count();
+
+            }
+
+            else
+            {
+                model.TotalClientes = queryCompras.Select(c => c.ClienteId).Distinct().Count();
+            }
+
+                var dadosGraficos = _ticketContext.Compras
+                    .Include(c => c.Evento)
+                    .GroupBy(c => c.Evento.Nome)
+                    .Select(grupo => new
+                    {
+                        NomeEvento = grupo.Key,
+                        TotalVendido = grupo.Sum(c => c.ValorTotal)
+                    })
+                    .OrderByDescending(x => x.TotalVendido)
+                    .Take(5) // Pega só o top 5
+                    .ToList();
+
+            model.LabelsGrafico = dadosGraficos.Select(x => x.NomeEvento).ToList();
+            model.DadosGrafico = dadosGraficos.Select(x => x.TotalVendido).ToList();
+
+            return model;
+        }
+
     }
+  
 }

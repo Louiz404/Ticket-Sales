@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Bem-vindo";
+}
+
+<div class="text-center mt-5">
+    <h1 class="display-3">Bem-vindo ao TicketSales</h1>
+    <p class="lead">A melhor plataforma para gerenciar e comprar ingressos.</p>
+
+    <div class="mt-4">
+        <a asp-controller="Loja" asp-action="Index" class="btn btn-outline-primary btn-lg mx-2">
+            <i class="fa-solid fa-store"></i> Ver Eventos
+        </a>
+        <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg mx-2">
+            <i class="fa-solid fa-right-to-bracket"></i> Acessar Sistema
+        </a>
+    </div>
+
+    <div class="row mt-5 pt-5">
+        <div class="col-md-4">
+            <i class="fa-solid fa-calendar-check fa-3x text-success mb-3"></i>
+            <h3>Fácil de Organizar</h3>
+            <p>Crie seus eventos e gerencie assentos em minutos.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="fa-solid fa-lock fa-3x text-warning mb-3"></i>
+            <h3>Seguro</h3>
+            <p>Controle total sobre vendas e acessos.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="fa-solid fa-chart-line fa-3x text-info mb-3"></i>
+            <h3>Resultados</h3>
+            <p>Acompanhe suas vendas em tempo real.</p>
+        </div>
+    </div>
+</div>

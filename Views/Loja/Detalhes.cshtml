@@ -1,5 +1,11 @@
 ﻿@model TicketSales.Models.Evento
 
+@{
+    ViewData["Title"] = "Comprar Ingressos - " + Model.Nome;
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
 <style>
     /* Estilo para as bolinhas dos assentos */
     .assento-box {
@@ -13,22 +19,22 @@
         cursor: pointer;
         font-size: 12px;
         font-weight: bold;
+        transition: all 0.2s;
     }
 
     .livre {
         background-color: #28a745;
         color: white;
     }
-    /* Verde */
+
     .ocupado {
         background-color: #dc3545;
         color: white;
         cursor: not-allowed;
         opacity: 0.6;
     }
-    /* Vermelho */
 
-    /* Esconde o checkbox real, vamos usar o visual da div */
+    /* Esconde o checkbox real */
     .chk-assento {
         display: none;
     }
@@ -37,41 +43,60 @@
         .chk-assento:checked + .assento-box {
             background-color: #007bff; /* Azul quando selecionado */
             border: 2px solid #0056b3;
+            transform: scale(1.1);
         }
 </style>
 
 <div class="container mt-4">
     <div class="row">
+
         <div class="col-md-4">
             @if (!string.IsNullOrEmpty(Model.Imagem))
             {
-                <img src="~/imagens/@Model.Imagem" class="img-fluid rounded mb-3" />
+                <img src="~/imagens/@Model.Imagem" class="img-fluid rounded mb-3 shadow-sm" style="width: 100%; height: 300px; object-fit: cover;" alt="@Model.Nome" />
             }
-            <h2>@Model.Nome</h2>
-            <h4 class="text-success">R$ @Model.Valor</h4>
-            <p>Selecione os assentos no mapa ao lado.</p>
+
+            <h2 class="fw-bold">@Model.Nome</h2>
+            <p class="text-muted"><i class="fa-solid fa-tag"></i> @Model.Categoria</p>
+            <h3 class="text-success mb-4">R$ @Model.Valor.ToString("N2")</h3>
 
             @if (TempData["Erro"] != null)
             {
                 <div class="alert alert-danger">@TempData["Erro"]</div>
             }
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fa-solid fa-map-location-dot text-primary"></i> Localização</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="p-3">
+                        <p class="fw-bold mb-1">@Model.Local</p>
+                        <p class="text-muted mb-0">@Model.Endereco</p>
+                    </div>
+
+                    <div id="map" style="height: 250px; width: 100%;"></div>
+                </div>
+            </div>
         </div>
 
         <div class="col-md-8">
-            <div class="card p-3">
-                <h5 class="card-title">Mapa de Assentos</h5>
+            <div class="card p-4 shadow-sm">
+                <h4 class="mb-3"><i class="fa-solid fa-chair"></i> Escolha seus lugares</h4>
                 <hr />
 
                 <form asp-action="Comprar" method="post">
                     <input type="hidden" name="eventoId" value="@Model.Id" />
 
                     <div class="mb-3">
-                        <label>Forma de Pagamento:</label>
+                        <label class="form-label fw-bold">Forma de Pagamento:</label>
                         <select name="metodoPagamento" class="form-select" asp-items="Html.GetEnumSelectList<TicketSales.Models.TiposDePagamento>()"></select>
                     </div>
 
-                    <h6 class="mt-4">Escolha seus lugares:</h6>
-                    <div class="d-flex flex-wrap" style="max-width: 600px;">
+                    <h6 class="mt-4 fw-bold">Mapa de Assentos:</h6>
+                    <p class="text-muted small">Clique nos assentos verdes para selecionar.</p>
+
+                    <div class="d-flex flex-wrap border rounded p-3 bg-light justify-content-center" style="max-height: 400px; overflow-y: auto;">
                         @foreach (var assento in Model.Assentos)
                         {
                             if (assento.Ocupado)
@@ -82,15 +107,73 @@
                             {
                                 <label>
                                     <input type="checkbox" name="assentosSelecionados" value="@assento.Id" class="chk-assento" />
-                                    <div class="assento-box livre">@assento.CodigoAssento</div>
+                                    <div class="assento-box livre" title="Livre - R$ @Model.Valor">@assento.CodigoAssento</div>
                                 </label>
                             }
                         }
                     </div>
 
-                    <button type="submit" class="btn btn-success btn-lg mt-4 w-100">Finalizar Compra</button>
+                    <div class="mt-2 text-end">
+                        <span class="badge bg-success me-2">Livre</span>
+                        <span class="badge bg-danger me-2">Ocupado</span>
+                        <span class="badge bg-primary">Selecionado</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg mt-4 w-100 fw-bold">
+                        <i class="fa-solid fa-cart-shopping"></i> Finalizar Compra
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Pega o endereço que veio do C# (Model) e remove caracteres perigosos
+        var enderecoEvento = "@Html.Raw(Model.Endereco)";
+        var nomeLocal = "@Html.Raw(Model.Local)";
+
+        // Só tenta carregar o mapa se tiver endereço
+        if (enderecoEvento && enderecoEvento.length > 5) {
+
+            // Inicializa o mapa focado no Brasil (visão padrão)
+            var map = L.map('map').setView([-14.2350, -51.9253], 4);
+
+            // Adiciona os "azulejos" (tiles) do OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Busca na API "Nominatim" para converter Endereço -> Coordenadas
+            var urlBusca = "https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(enderecoEvento);
+
+            fetch(urlBusca)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        var lat = data[0].lat;
+                        var lon = data[0].lon;
+
+                        // Atualiza o mapa para a posição encontrada
+                        map.setView([lat, lon], 16);
+
+                        // Adiciona um marcador (pin) com popup
+                        L.marker([lat, lon]).addTo(map)
+                            .bindPopup(`<b>${nomeLocal}</b><br>${enderecoEvento}`)
+                            .openPopup();
+                    } else {
+                        console.log("Endereço não encontrado no mapa.");
+                        // Opcional: mostrar mensagem na div do mapa
+                        document.getElementById('map').innerHTML = '<div class="text-center p-5 text-muted">Mapa indisponível para este endereço.</div>';
+                    }
+                })
+                .catch(err => console.error("Erro ao buscar endereço:", err));
+        } else {
+             document.getElementById('map').innerHTML = '<div class="text-center p-5 text-muted">Endereço não informado.</div>';
+        }
+    });
+</script>

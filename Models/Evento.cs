@@ -23,10 +23,10 @@ namespace TicketSales.Models
         [Required]
         public int QuantidadeLugares { get; set; }
         
-        [Display(Name = "Quantidade de Lugares")]
+        [Display(Name = "Quantidade de Lugares Disponíveis")]
         public int LugaresDisponiveis { get; set; }
 
-        [Display(Name = "Valor")]
+        [Display(Name = "Valor do Evento")]
         [Required]
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Valor { get; set; }
@@ -37,6 +37,15 @@ namespace TicketSales.Models
         public bool Ativo { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.Now;
         public string? Imagem { get; set; }
+
+        [Display(Name = "local do Evento")]
+        public string? Local { get; set; }
+
+        [Display(Name = "Data do Endereço Completo")]
+        public string? Endereco { get; set; }
+
+        [Display(Name = "Data do Evento")]
+        public DateTime? DataEvento { get; set; }
 
         public List<Assento> Assentos { get; set; } = new List<Assento>();
 

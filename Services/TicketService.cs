@@ -136,8 +136,13 @@ namespace TicketSales.Services
 
         // Metodos Evento de ação: POST
 
-        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem, string organizadorId)
+        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem, string organizadorId, string local, string endereco, DateTime dataEvento)
         {
+
+            if (dataEvento <= DateTime.Now)
+            {
+                throw new Exception("A data do evento deve ser futura.");
+            }
 
             if (string.IsNullOrWhiteSpace(nome))
                 throw new Exception("Digite um nome para o evento.");
@@ -158,7 +163,6 @@ namespace TicketSales.Services
                 });
             }
 
-
             var evento = new Evento
             {
                 Nome = nome,
@@ -168,9 +172,12 @@ namespace TicketSales.Services
                 Categoria = string.IsNullOrEmpty(categoria) ? "Geral" : categoria,
                 Ativo = true,
                 DataCriacao = DateTime.Now,
+                DataEvento = dataEvento,
                 Assentos = listaAssentos,
                 Imagem = nomeImagem,
                 OrganizadorId = organizadorId,
+                Local = local,
+                Endereco = endereco
             };
 
             _ticketContext.Eventos.Add(evento);

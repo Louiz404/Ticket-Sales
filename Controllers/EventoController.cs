@@ -73,7 +73,11 @@ namespace TicketSales.Controllers
                     evento.Valor, 
                     evento.Categoria, 
                     nomeArquivo, 
-                    userId);
+                    userId,
+                    evento.Local,
+                    evento.Endereco,
+                    (DateTime)evento.DataEvento
+                    );
                 
                 return RedirectToAction("Index");
             }

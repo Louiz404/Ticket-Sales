@@ -37,6 +37,23 @@
                         <div class="form-text">Assentos serão gerados automaticamente.</div>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Local (Nome do Estabelecimento)</label>
+                        <input asp-for="Local" class="form-control" placeholder="Ex: Allianz Parque" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Endereço Completo</label>
+                        <input asp-for="Endereco" class="form-control" placeholder="Ex: Rua Palestra Itália, 200, São Paulo - SP" />
+                        <small class="text-muted">Isso será usado para gerar o mapa.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data e Hora do Evento</label>
+                        <input asp-for="DataEvento" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="DataEvento" class="text-danger"></span>
+                    </div>
+
                     <div class="col-md-6 mb-3">
                         <label asp-for="Valor" class="form-label"></label>
                         <div class="input-group">

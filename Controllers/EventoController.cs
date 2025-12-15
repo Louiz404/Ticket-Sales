@@ -76,7 +76,9 @@ namespace TicketSales.Controllers
                     userId,
                     evento.Local,
                     evento.Endereco,
-                    (DateTime)evento.DataEvento
+                    (DateTime)evento.DataEvento,
+                    evento.Latitude,
+                    evento.Longitude
                     );
                 
                 return RedirectToAction("Index");
@@ -88,6 +90,60 @@ namespace TicketSales.Controllers
             }
         }
 
+        public IActionResult Editar(int id)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isAdmin = User.IsInRole("Admin");
+
+                var evento = _service.ObterEventoParaEdicao(id, userId, isAdmin);
+
+                return View(evento);
+            }
+
+            catch (Exception ex)
+            {
+                TempData["Erro"] = ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Editar(int id, Evento evento, IFormFile? foto)
+        {
+            try
+            {
+                string? nomeArquivo = null;
+
+                if (foto != null && foto.Length > 0)
+                {
+                    string pasta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens");
+
+                    if (Directory.Exists(pasta)) Directory.CreateDirectory(pasta);
+
+                    nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
+                    string caminhoCompleto = Path.Combine(pasta, nomeArquivo);
+
+                    using (var stream = new FileStream(caminhoCompleto, FileMode.Create))
+                    {
+                        await foto.CopyToAsync(stream);
+                    }
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isAdmin = User.IsInRole("Admin");
+
+                _service.AtualizarEvento(id, evento, nomeArquivo, userId, isAdmin);
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return View(evento);
+            }
+        }
         
         [HttpPost]
         public IActionResult Desativar(int id)

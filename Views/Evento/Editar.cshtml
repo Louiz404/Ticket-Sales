@@ -1,15 +1,15 @@
 ﻿@model TicketSales.Models.Evento
 
 @{
-    ViewData["Title"] = "Novo Evento";
+    ViewData["Title"] = "Editar Evento";
 }
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <div class="container mt-4">
     <div class="card shadow-lg border-0">
-        <div class="card-header bg-primary text-white py-3">
-            <h3 class="mb-0"><i class="fa-solid fa-calendar-plus"></i> Cadastrar Novo Evento</h3>
+        <div class="card-header bg-warning text-dark py-3">
+            <h3 class="mb-0"><i class="fa-solid fa-pen-to-square"></i> Editar Evento</h3>
         </div>
 
         <div class="card-body p-4">
@@ -23,7 +23,9 @@
                 </div>
             }
 
-            <form asp-action="Criar" method="post" enctype="multipart/form-data">
+            <form asp-action="Editar" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+
                 <div class="row">
 
                     <div class="col-lg-6 border-end">
@@ -31,7 +33,7 @@
 
                         <div class="mb-3">
                             <label asp-for="Nome" class="form-label fw-bold">Nome do Evento</label>
-                            <input asp-for="Nome" class="form-control form-control-lg" placeholder="Ex: Festival de Verão 2025" />
+                            <input asp-for="Nome" class="form-control form-control-lg" />
                             <span asp-validation-for="Nome" class="text-danger"></span>
                         </div>
 
@@ -51,22 +53,37 @@
                                 <label asp-for="Valor" class="form-label">Valor do Ingresso</label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
-                                    <input asp-for="Valor" type="number" step="0.01" class="form-control" placeholder="0,00" />
+                                    <input asp-for="Valor" type="number" step="0.01" class="form-control" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="QuantidadeLugares" class="form-label">Capacidade (Lugares)</label>
-                            <input asp-for="QuantidadeLugares" type="number" class="form-control" />
-                            <div class="form-text text-muted">
-                                <i class="fa-solid fa-triangle-exclamation"></i> O sistema gerará automaticamente os assentos numerados.
+                            <div class="input-group">
+                                <input asp-for="QuantidadeLugares" class="form-control bg-light" readonly />
+                                <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-lock"></i></span>
+                            </div>
+                            <div class="form-text text-danger">
+                                <small>Não é possível alterar a lotação após a criação.</small>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Banner / Imagem</label>
-                            <input type="file" name="foto" class="form-control" accept="image/*" />
+                        <div class="mb-3 p-3 border rounded bg-light">
+                            <label class="form-label fw-bold mb-2">Imagem do Banner</label>
+                            <div class="d-flex align-items-center gap-3">
+                                @if (!string.IsNullOrEmpty(Model.Imagem))
+                                {
+                                    <div class="text-center">
+                                        <img src="~/imagens/@Model.Imagem" class="rounded shadow-sm border" style="width: 80px; height: 80px; object-fit: cover;" />
+                                        <div style="font-size: 0.7rem;" class="text-muted mt-1">Atual</div>
+                                    </div>
+                                }
+                                <div class="flex-grow-1">
+                                    <label class="form-label small text-muted">Trocar imagem (opcional):</label>
+                                    <input type="file" name="foto" class="form-control" accept="image/*" />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -79,28 +96,28 @@
                             <span asp-validation-for="DataEvento" class="text-danger"></span>
                         </div>
 
-                        <input type="hidden" id="lat" name="Latitude" value="@Model?.Latitude" />
-                        <input type="hidden" id="lon" name="Longitude" value="@Model?.Longitude" />
+                        <input type="hidden" id="lat" name="Latitude" value="@Model.Latitude?.ToString().Replace(",", ".")" />
+                        <input type="hidden" id="lon" name="Longitude" value="@Model.Longitude?.ToString().Replace(",", ".")" />
 
                         <div class="mb-3">
                             <label class="form-label">Local (Nome do Estabelecimento)</label>
-                            <input asp-for="Local" class="form-control" placeholder="Ex: Allianz Parque" />
+                            <input asp-for="Local" class="form-control" />
                         </div>
 
                         <div class="mb-2">
                             <label class="form-label">Endereço (Busca Automática)</label>
                             <div class="input-group">
                                 <input asp-for="Endereco" id="inputEndereco" class="form-control" placeholder="Digite rua, número e cidade..." />
-                                <button type="button" class="btn btn-outline-primary" onclick="buscarEndereco()">
+                                <button type="button" class="btn btn-outline-dark" onclick="buscarEndereco()">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
                             </div>
                         </div>
 
                         <div class="card border-0 shadow-sm">
-                            <div id="mapaCadastro" style="height: 250px; width: 100%; border-radius: 8px;"></div>
+                            <div id="mapaEdicao" style="height: 250px; width: 100%; border-radius: 8px;"></div>
                             <small class="text-muted mt-1 text-center d-block">
-                                <i class="fa-solid fa-hand-pointer"></i> Arraste o pino azul para ajustar a posição exata.
+                                <i class="fa-solid fa-arrows-up-down-left-right"></i> Arraste o pino para corrigir a posição se necessário.
                             </small>
                         </div>
                     </div>
@@ -108,15 +125,23 @@
 
                 <hr class="my-4" />
 
-                <div class="d-flex justify-content-end gap-2">
-                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                        <i class="fa-solid fa-arrow-left"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-success btn-lg px-5">
-                        <i class="fa-solid fa-check"></i> Criar Evento
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-danger" onclick="confirmarExclusao()">
+                        <i class="fa-solid fa-trash"></i> Desativar Evento
                     </button>
+
+                    <div class="d-flex gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                            <i class="fa-solid fa-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-warning btn-lg px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+                        </button>
+                    </div>
                 </div>
             </form>
+
+            <form id="formDesativar" asp-action="Desativar" asp-route-id="@Model.Id" method="post" style="display:none;"></form>
         </div>
     </div>
 </div>
@@ -129,25 +154,29 @@
         var marker;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. Valores Iniciais
-            var latInicial = document.getElementById('lat').value || -14.2350;
-            var lonInicial = document.getElementById('lon').value || -51.9253;
-            var zoomInicial = document.getElementById('lat').value ? 16 : 4;
+            // 1. Tenta pegar Lat/Lon existentes
+            var latVal = document.getElementById('lat').value;
+            var lonVal = document.getElementById('lon').value;
+
+            // Define posição inicial (Do banco ou Padrão Brasil)
+            var latInicial = latVal ? parseFloat(latVal) : -14.2350;
+            var lonInicial = lonVal ? parseFloat(lonVal) : -51.9253;
+            var zoomInicial = latVal ? 16 : 4;
 
             // 2. Inicia o Mapa
-            map = L.map('mapaCadastro').setView([latInicial, lonInicial], zoomInicial);
+            map = L.map('mapaEdicao').setView([latInicial, lonInicial], zoomInicial);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
             }).addTo(map);
 
-            // 3. Adiciona Marcador se já houver Lat/Lon
-            if(document.getElementById('lat').value) {
+            // 3. Se já tinha coordenada salva, coloca o pino lá
+            if(latVal && lonVal) {
                 marker = L.marker([latInicial, lonInicial], {draggable: true}).addTo(map);
                 adicionarEventoDrag();
             }
 
-            // 4. Evento de Clique no Mapa
+            // 4. Clique no mapa move/cria pino
             map.on('click', function(e) {
                 if (marker) {
                     marker.setLatLng(e.latlng);
@@ -170,7 +199,7 @@
             var endereco = document.getElementById('inputEndereco').value;
             if(!endereco) return;
 
-            // Feedback visual de carregamento
+            // Feedback visual
             var btn = document.querySelector('button[onclick="buscarEndereco()"]');
             var iconOriginal = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -193,7 +222,7 @@
                         }
                         atualizarInputs(lat, lon);
                     } else {
-                        alert("Endereço não encontrado. Tente ser mais específico (Rua, Cidade, Estado).");
+                        alert("Endereço não encontrado.");
                     }
                 })
                 .catch(err => console.error(err))
@@ -206,6 +235,12 @@
         function atualizarInputs(lat, lon) {
             document.getElementById('lat').value = lat;
             document.getElementById('lon').value = lon;
+        }
+
+        function confirmarExclusao() {
+            if(confirm("Tem certeza que deseja desativar este evento? Ele não aparecerá mais na loja.")) {
+                document.getElementById('formDesativar').submit();
+            }
         }
     </script>
 

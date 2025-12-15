@@ -41,8 +41,11 @@ namespace TicketSales.Models
         [Display(Name = "local do Evento")]
         public string? Local { get; set; }
 
-        [Display(Name = "Data do Endereço Completo")]
+        [Display(Name = "Endereço Completo")]
         public string? Endereco { get; set; }
+
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
 
         [Display(Name = "Data do Evento")]
         public DateTime? DataEvento { get; set; }

@@ -134,9 +134,23 @@ namespace TicketSales.Services
 
         }
 
+        public Evento ObterEventoParaEdicao(int id, string userId, bool isAdmin)
+        {
+            var evento = _ticketContext.Eventos.Find(id);
+
+            if (evento == null) throw new Exception("evento não encontrado");
+
+            if (!isAdmin && evento.OrganizadorId != userId)
+            {
+                throw new Exception("Você não tem permissão para editar esse evento. ");
+            }
+
+            return evento;
+        }
+
         // Metodos Evento de ação: POST
 
-        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem, string organizadorId, string local, string endereco, DateTime dataEvento)
+        public void CriarEvento(string nome, int quantidadeLugares, decimal valor, string categoria, string? nomeImagem, string organizadorId, string local, string endereco, DateTime dataEvento, double? lat, double? lon)
         {
 
             if (dataEvento <= DateTime.Now)
@@ -177,7 +191,9 @@ namespace TicketSales.Services
                 Imagem = nomeImagem,
                 OrganizadorId = organizadorId,
                 Local = local,
-                Endereco = endereco
+                Endereco = endereco,
+                Latitude = lat,
+                Longitude = lon
             };
 
             _ticketContext.Eventos.Add(evento);
@@ -246,6 +262,35 @@ namespace TicketSales.Services
             return _ticketContext.Eventos
                 .Where(e => e.OrganizadorId == userId)
                 .ToList();
+        }
+
+        public void AtualizarEvento(int id, Evento dadosNovos, string? novaImagem, string userId, bool isAdmin)
+        {
+            var eventoNoBanco = _ticketContext.Eventos.Find(id);
+
+            if (eventoNoBanco == null) throw new Exception("Evento não encontrado. ");
+
+            if (!isAdmin && eventoNoBanco.OrganizadorId != userId)
+            {
+                throw new Exception("Sem permissão");
+            }
+
+            eventoNoBanco.Nome = dadosNovos.Nome;
+            eventoNoBanco.Valor = dadosNovos.Valor;
+            eventoNoBanco.Categoria = dadosNovos.Categoria;
+            eventoNoBanco.Local = dadosNovos.Local;
+            eventoNoBanco.Endereco = dadosNovos.Endereco;
+            eventoNoBanco.Latitude = dadosNovos.Latitude;
+            eventoNoBanco.Longitude = dadosNovos.Longitude; 
+            eventoNoBanco.DataEvento = dadosNovos.DataEvento;
+
+            if (!string.IsNullOrEmpty(novaImagem))
+            { 
+                eventoNoBanco.Imagem = novaImagem;
+            }
+
+            _ticketContext.Eventos.Update(eventoNoBanco);
+            _ticketContext.SaveChanges();
         }
 
         // --- MÉTODOS DE CLIENTE ---

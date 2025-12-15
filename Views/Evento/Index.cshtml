@@ -1,59 +1,142 @@
-﻿@model List<TicketSales.Models.Evento>
+﻿@model IEnumerable<TicketSales.Models.Evento>
+
+@{
+    ViewData["Title"] = "Gerenciar Eventos";
+}
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Eventos Disponíveis</h2>
-        <a asp-action="Criar" class="btn btn-primary">Novo Evento</a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="fa-solid fa-calendar-days text-primary"></i> Gerenciar Eventos</h2>
+            <p class="text-muted">Visualize e controle seus eventos cadastrados.</p>
+        </div>
+        <a asp-action="Criar" class="btn btn-success btn-lg shadow-sm">
+            <i class="fa-solid fa-plus"></i> Novo Evento
+        </a>
     </div>
 
     @if (TempData["Sucesso"] != null)
     {
-        <div class="alert alert-success">@TempData["Sucesso"]</div>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-check"></i> @TempData["Sucesso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
     @if (TempData["Erro"] != null)
     {
-        <div class="alert alert-danger">@TempData["Erro"]</div>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fa-solid fa-triangle-exclamation"></i> @TempData["Erro"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
 
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Imagem</th>
-                <th>Nome</th>
-                <th>Categoria</th>
-                <th>Tipo</th>
-                <th>Lugares (Disp/Total)</th>
-                <th>Valor</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        @if (!string.IsNullOrEmpty(item.Imagem))
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary">
+                        <tr>
+                            <th class="ps-4">Evento</th>
+                            <th>Data & Local</th>
+                            <th>Categoria</th>
+                            <th>Lotação</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
                         {
-                            <img src="~/imagens/@item.Imagem" alt="Imagem do Evento" style="width: 80px; height: 50px; object-fit: cover; border-radius: 5px;" />
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fa-regular fa-folder-open fa-3x mb-3"></i>
+                                    <p>Nenhum evento encontrado.</p>
+                                </td>
+                            </tr>
                         }
                         else
                         {
-                            <span class="text-muted">Sem foto</span>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(item.Imagem))
+                                            {
+                                                <img src="~/imagens/@item.Imagem" class="rounded shadow-sm me-3" style="width: 50px; height: 50px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                                    <i class="fa-solid fa-image"></i>
+                                                </div>
+                                            }
+                                            <span class="fw-bold text-dark">@item.Nome</span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="small">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            @(item.DataEvento.HasValue? item.DataEvento.Value.ToString("dd/MM/yyyy HH:mm") : "A definir")
+                                            <br />                                            <i class="fa-solid fa-location-dot text-muted"></i> @(item.Local ?? "Local não definido")
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-info text-dark">@item.Categoria</span>
+                                    </td>
+
+                                    <td>
+                                        @if (item.LugaresDisponiveis == 0)
+                                        {
+                                            <span class="badge bg-danger">Esgotado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">@item.LugaresDisponiveis / @item.QuantidadeLugares</span>
+                                        }
+                                    </td>
+
+                                    <td class="fw-bold text-success">
+                                        R$ @item.Valor.ToString("N2")
+                                    </td>
+
+                                    <td>
+                                        @if (item.Ativo)
+                                        {
+                                            <span class="badge bg-success"><i class="fa-solid fa-check"></i> Ativo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fa-solid fa-ban"></i> Inativo</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-action="Editar" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Editar">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+
+                                            @if (item.Ativo)
+                                            {
+                                                <form asp-action="Desativar" asp-route-id="@item.Id" method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja desativar este evento? Ele sairá da loja.');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Desativar">
+                                                        <i class="fa-solid fa-power-off"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
                         }
-                    </td>
-                    <td>@item.Nome</td>
-                    <td>@item.Nome</td>
-                    <td>@item.Categoria</td>
-                    <td>@item.LugaresDisponiveis / @item.QuantidadeLugares</td>
-                    <td>R$ @item.Valor</td>
-                    <td>
-                        <form asp-action="Desativar" method="post" onsubmit="return confirm('Tem certeza que deseja desativar este evento?');">
-                            <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>

@@ -2,8 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using TicketSales.Data;
 using TicketSales.Services;
 using Microsoft.AspNetCore.Identity;
+using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Adicione esta linha após a criação do builder para obter o ambiente
+var env = builder.Environment;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -56,5 +60,6 @@ using (var scope = app.Services.CreateScope())
     await SeedData.EnsureSeedData(services);
 }
 
+Rotativa.AspNetCore.RotativaConfiguration.Setup(env.WebRootPath, "Rotativa");
 
 app.Run();

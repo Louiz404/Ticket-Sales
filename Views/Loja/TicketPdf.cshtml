@@ -1,0 +1,138 @@
+﻿@model TicketSales.Models.ViewModels.TicketPdfViewModel
+
+@{
+    Layout = null; // Importante: PDF não pode ter o menu do site
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Ingresso - @Model.Compra.Evento.Nome</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+    <style>
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+
+        .ticket-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #000;
+            color: #ffc107; /* Amarelo */
+            padding: 20px;
+            text-align: center;
+            border-bottom: 5px solid #ffc107;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .row-item {
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+
+        .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .qr-section {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 30px;
+            border-top: 2px dashed #000;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-container">
+        <div class="header">
+            <h1 style="margin:0; text-transform:uppercase;">Ticket Sales</h1>
+            <p style="margin:0; font-size: 14px; color: #fff;">Comprovante Oficial de Entrada</p>
+        </div>
+
+        <div class="content">
+            <div class="text-center mb-5">
+                <h2 class="text-uppercase font-weight-bold display-4">@Model.Compra.Evento.Nome</h2>
+                <span class="badge badge-warning p-2">CONFIRMADO</span>
+            </div>
+
+            <div class="row row-item">
+                <div class="col-6">
+                    <div class="label">Data e Hora</div>
+                    <div class="value">@Model.Compra.Evento.DataEvento.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+                <div class="col-6">
+                    <div class="label">Local</div>
+                    <div class="value">@Model.Compra.Evento.Local</div>
+                </div>
+            </div>
+
+            <div class="row row-item">
+                <div class="col-6">
+                    <div class="label">Cliente</div>
+                    <div class="value">@Model.Compra.Cliente.Nome</div>
+                </div>
+                <div class="col-6">
+                    <div class="label">Pedido Nº</div>
+                    <div class="value">#@Model.Compra.Id</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="label">Assentos Selecionados</div>
+                    <div class="value text-primary">
+                        @foreach (var item in Model.Compra.AssentosSelecionados)
+                        {
+                            <span class="badge badge-primary" style="font-size: 16px; margin-right: 5px;">@item.CodigoAssento</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="qr-section">
+            <p class="font-weight-bold">APRESENTE ESTE CÓDIGO NA ENTRADA</p>
+
+            <img src="@Model.QrCodeBase64" width="220" height="220" style="border: 1px solid #ddd; padding: 10px; background: #fff;" />
+
+            <p class="mt-3 text-muted small">Válido apenas para uma entrada.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        Gerado em @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") • TicketSales App
+    </div>
+
+</body>
+</html>

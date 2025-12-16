@@ -2,6 +2,8 @@
 using TicketSales.Data;
 using TicketSales.Models;
 using TicketSales.Models.ViewModels;
+using QRCoder;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TicketSales.Services
 {
@@ -281,11 +283,11 @@ namespace TicketSales.Services
             eventoNoBanco.Local = dadosNovos.Local;
             eventoNoBanco.Endereco = dadosNovos.Endereco;
             eventoNoBanco.Latitude = dadosNovos.Latitude;
-            eventoNoBanco.Longitude = dadosNovos.Longitude; 
+            eventoNoBanco.Longitude = dadosNovos.Longitude;
             eventoNoBanco.DataEvento = dadosNovos.DataEvento;
 
             if (!string.IsNullOrEmpty(novaImagem))
-            { 
+            {
                 eventoNoBanco.Imagem = novaImagem;
             }
 
@@ -390,7 +392,7 @@ namespace TicketSales.Services
 
             if (isAdmin)
             {
-             model.TotalClientes = _ticketContext.Clientes.Count();
+                model.TotalClientes = _ticketContext.Clientes.Count();
 
             }
 
@@ -399,17 +401,17 @@ namespace TicketSales.Services
                 model.TotalClientes = queryCompras.Select(c => c.ClienteId).Distinct().Count();
             }
 
-                var dadosGraficos = _ticketContext.Compras
-                    .Include(c => c.Evento)
-                    .GroupBy(c => c.Evento.Nome)
-                    .Select(grupo => new
-                    {
-                        NomeEvento = grupo.Key,
-                        TotalVendido = grupo.Sum(c => c.ValorTotal)
-                    })
-                    .OrderByDescending(x => x.TotalVendido)
-                    .Take(5) // Pega só o top 5
-                    .ToList();
+            var dadosGraficos = _ticketContext.Compras
+                .Include(c => c.Evento)
+                .GroupBy(c => c.Evento.Nome)
+                .Select(grupo => new
+                {
+                    NomeEvento = grupo.Key,
+                    TotalVendido = grupo.Sum(c => c.ValorTotal)
+                })
+                .OrderByDescending(x => x.TotalVendido)
+                .Take(5) // Pega só o top 5
+                .ToList();
 
             model.LabelsGrafico = dadosGraficos.Select(x => x.NomeEvento).ToList();
             model.DadosGrafico = dadosGraficos.Select(x => x.TotalVendido).ToList();
@@ -417,6 +419,73 @@ namespace TicketSales.Services
             return model;
         }
 
+
+
+        // --- MÉTODO QR CODE ---
+
+        public byte[] GerarBytesQRCode(int compraId, string userId)
+        {
+
+            var compra = _ticketContext.Compras
+                .Include(c => c.Evento)
+                .Include(c => c.AssentosSelecionados)
+                .Include(c => c.Cliente)
+                .FirstOrDefault(c => c.Id == compraId && c.Cliente.UsuarioId == userId);
+
+            if (compra == null) return null;
+
+            // Motangem do conteúdo do QR Code
+
+            var textoNota = $"TICKET SALES - COMPROVANTE\n" +
+                            $"PEDIDO: {compra.Id}\n" +
+                            $"EVENTO: {compra.Evento.Nome}\n" +
+                            $"DATA: {compra.Evento.DataEvento:dd/MM/yyyy HH:mm}\n" +
+                            $"ASSENTOS: {string.Join(", ", compra.AssentosSelecionados.Select(a => a.CodigoAssento))}\n" +
+                            $"VALOR: {compra.ValorTotal:N2} \n" +
+                            $"CLIENTE: {compra.Evento.Nome}\n";
+
+            using (var qrGenerator = new QRCodeGenerator())
+            {
+                var qrCodeData = qrGenerator.CreateQrCode(textoNota, QRCodeGenerator.ECCLevel.Q);
+                using (var qrCode = new PngByteQRCode(qrCodeData))
+                {
+                    // retorna array de bytes da imagem
+                    return qrCode.GetGraphic(20);
+                }
+            }
+
+
+        }
+        public TicketPdfViewModel DownloadTicket(int id, string userId)
+        {
+            var compra = _ticketContext.Compras
+                .Include(c => c.Evento)
+                .Include(c => c.AssentosSelecionados)
+                .Include(c => c.Cliente)
+                .FirstOrDefault(c => c.Id == id && c.Cliente.UsuarioId == userId);
+
+            if (compra == null) return null;
+
+            var qrBytes = GerarBytesQRCode(id, userId);
+
+            string qrCodeImgSrc = "";
+
+            // Converte os bytes para Base64
+            // Isso é necessário para o PDF conseguir renderizar a imagem sem precisar salvar arquivo no disco
+            if (qrBytes != null)
+            {
+                var base64Qr = Convert.ToBase64String(qrBytes);
+                qrCodeImgSrc = string.Format("data:image/png;base64,{0}", base64Qr);
+            }
+
+            return new TicketPdfViewModel
+            {
+                Compra = compra,
+                QrCodeBase64 = qrCodeImgSrc
+            };
+
+            
+        }
     }
-  
+    
 }

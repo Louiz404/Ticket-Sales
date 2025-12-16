@@ -1,0 +1,174 @@
+﻿@model List<TicketSales.Models.Compra>
+
+@{
+    ViewData["Title"] = "Meus Ingressos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="fa-solid fa-ticket fa-2x text-primary me-3"></i>
+        <h2 class="mb-0">Meus Ingressos</h2>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 bg-light rounded shadow-sm">
+            <i class="fa-regular fa-face-sad-tear fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Você ainda não comprou ingressos.</h4>
+            <p>Que tal dar uma olhada nos shows disponíveis?</p>
+            <a asp-action="Index" class="btn btn-primary mt-2">Ver Eventos</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var compra in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                            <small>Pedido #@compra.Id</small>
+                            <span class="badge bg-success">Confirmado</span>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                <div class="me-3">
+                                    @if (compra.Evento != null && !string.IsNullOrEmpty(compra.Evento.Imagem))
+                                    {
+                                        <img src="~/imagens/@compra.Evento.Imagem" class="rounded" style="width: 70px; height: 70px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white" style="width: 70px; height: 70px;">
+                                            <i class="fa-solid fa-music"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div>
+                                    <h5 class="card-title mb-1 fw-bold">@compra.Evento?.Nome</h5>
+                                    <div class="text-muted small">
+                                        <div><i class="fa-regular fa-calendar"></i> @(compra.Evento?.DataEvento.Value.ToString("dd/MM/yyyy HH:mm") ?? "Data indefinida")</div>
+                                        <div><i class="fa-solid fa-location-dot"></i> @(compra.Evento?.Local ?? "Local indefinido")</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <h6 class="text-secondary small fw-bold">SEUS LUGARES:</h6>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                @foreach (var assento in compra.AssentosSelecionados)
+                                {
+                                    <span class="badge bg-primary fs-6">
+                                        <i class="fa-solid fa-chair"></i> @assento.CodigoAssento
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center pb-3">
+                            <span class="fw-bold text-success">Total: R$ @compra.ValorTotal.ToString("N2")</span>
+
+                            <div class="d-flex gap-2">
+                                <a asp-action="DownloadTicket" asp-route-id="@compra.Id" target="_blank" class="btn btn-outline-danger btn-sm">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </a>
+
+                                <button class="btn btn-outline-dark btn-sm"
+                                        data-id="@compra.Id"
+                                        data-evento="@compra.Evento?.Nome"
+                                        data-data="@(compra.Evento?.DataEvento.Value.ToString("dd/MM/yyyy HH:mm"))"
+                                        data-local="@compra.Evento?.Local"
+                                        data-assentos="@string.Join(", ", compra.AssentosSelecionados.Select(a => a.CodigoAssento))"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalTicket">
+                                    <i class="fa-solid fa-qrcode"></i> Ver E-Ticket
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="modalTicket" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: #f8f9fa;">
+            <div class="modal-header bg-warning border-bottom-0 text-center justify-content-center position-relative" style="border-top: 8px solid #000;">
+                <h5 class="modal-title fw-bold text-uppercase"><i class="fa-solid fa-ticket"></i> Ingresso Digital</h5>
+                <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0">
+                <div class="bg-white p-4 text-center border-bottom">
+                    <h2 id="ticketEvento" class="fw-bold text-uppercase mb-1">NOME DO SHOW</h2>
+                    <p id="ticketData" class="text-muted fs-5 mb-3">00/00/0000 00:00</p>
+
+                    <div class="d-flex justify-content-center gap-4">
+                        <div class="text-start border-end pe-4">
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">LOCAL</small>
+                            <strong id="ticketLocal">Local do Evento</strong>
+                        </div>
+                        <div class="text-start">
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">ASSENTOS</small>
+                            <strong id="ticketAssentos" class="text-primary fs-5">A1, A2</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 text-center position-relative" style="background-color: #f8f9fa;">
+                    <div style="position: absolute; top: -10px; left: -10px; width: 20px; height: 20px; background-color: #333; border-radius: 50%;"></div>
+                    <div style="position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; background-color: #333; border-radius: 50%;"></div>
+
+                    <p class="small text-muted mb-3">Apresente o código abaixo na entrada</p>
+
+                    <div class="bg-white p-2 d-inline-block border">
+                        <img id="imgQrCode" src="" alt="Gerando QR Code..." class="img-fluid" style="width: 200px; height: 200px;" />
+                    </div>
+
+                    <div class="mt-3 text-monospace text-muted small">
+                        PEDIDO #<span id="ticketId">000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer justify-content-center border-0 bg-dark">
+                <button type="button" class="btn btn-light px-5 fw-bold" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var modalTicket = document.getElementById('modalTicket');
+
+        modalTicket.addEventListener('show.bs.modal', function (event) {
+            // Botão que disparou o modal
+            var button = event.relatedTarget;
+
+            // Extrai info dos data-attributes
+            var id = button.getAttribute('data-id');
+            var evento = button.getAttribute('data-evento');
+            var data = button.getAttribute('data-data');
+            var local = button.getAttribute('data-local');
+            var assentos = button.getAttribute('data-assentos');
+
+            // Atualiza o conteúdo do modal
+            document.getElementById('ticketId').textContent = id;
+            document.getElementById('ticketEvento').textContent = evento;
+            document.getElementById('ticketData').textContent = data;
+            document.getElementById('ticketLocal').textContent = local;
+            document.getElementById('ticketAssentos').textContent = assentos;
+
+            // Define o SRC da imagem para chamar o nosso Controller > Service
+            // Isso faz o navegador pedir a imagem gerada na hora
+            var img = document.getElementById('imgQrCode');
+            img.src = '/Loja/GerarQRCode/' + id;
+        });
+    </script>
+}

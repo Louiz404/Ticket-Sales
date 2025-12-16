@@ -2,15 +2,22 @@
 using System.Security.Claims;
 using TicketSales.Models;
 using TicketSales.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using TicketSales.Data;
+using TicketSales.Models.ViewModels;
+using Rotativa.AspNetCore;
 
 namespace TicketSales.Controllers
 {
     public class LojaController : Controller
     {
         private readonly TicketService _service;
-        public LojaController(TicketService service)
+        private readonly TicketContext _TicketContext;
+        public LojaController(TicketService service, TicketContext tickeContext)
         {
             _service = service;
+            _TicketContext = tickeContext;
         }
         public IActionResult Index()
         {
@@ -50,6 +57,56 @@ namespace TicketSales.Controllers
             public IActionResult Sucesso()
             {
                 return View();
+            }
+
+        [Authorize]
+        public IActionResult MeusIngressos()
+        { 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var compras = _TicketContext.Compras
+                .Include(c => c.Evento)
+                .Include(c => c.AssentosSelecionados)
+                .Where(c => c.Cliente.UsuarioId == userId)
+                .OrderByDescending(c => c.DataCompra)
+                .ToList();
+
+            return View(compras);
+        }
+
+        [Authorize]
+        public IActionResult GerarQRCode(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var qrCodeBytes = _service.GerarBytesQRCode(id, userId);
+
+            if (qrCodeBytes == null)
+            {
+                return NotFound();
+            }
+
+            return File(qrCodeBytes, "image/png");
+
+        }
+
+        [Authorize]
+        public IActionResult DownloadTicket(int id)
+        { 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var model = _service.DownloadTicket(id, userId);
+
+            if (model == null) return NotFound();
+
+            return new ViewAsPdf("TicketPdf", model)
+            {
+                FileName = $"Ingresso_Pedido_{model.Compra.Id}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                CustomSwitches = "--disable-smart-shrinking --margin-top 0mm --margin-bottom 0mm --margin-left 0mm --margin-right 0mm"
+            };
+
         }
     }
 }

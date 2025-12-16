@@ -1,7 +1,18 @@
 ﻿@model TicketSales.Models.Evento
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Editar Evento";
+
+    // 1. TRATAMENTO NO SERVIDOR (Blindagem contra erros de cultura)
+    // Forçamos o formato americano (ponto) para o HTML ficar limpo.
+    string latString = Model.Latitude.HasValue
+        ? Model.Latitude.Value.ToString(CultureInfo.InvariantCulture)
+        : "";
+
+    string lonString = Model.Longitude.HasValue
+        ? Model.Longitude.Value.ToString(CultureInfo.InvariantCulture)
+        : "";
 }
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -27,7 +38,6 @@
                 <input type="hidden" asp-for="Id" />
 
                 <div class="row">
-
                     <div class="col-lg-6 border-end">
                         <h5 class="text-muted mb-3"><i class="fa-solid fa-circle-info"></i> Informações Básicas</h5>
 
@@ -64,9 +74,6 @@
                                 <input asp-for="QuantidadeLugares" class="form-control bg-light" readonly />
                                 <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-lock"></i></span>
                             </div>
-                            <div class="form-text text-danger">
-                                <small>Não é possível alterar a lotação após a criação.</small>
-                            </div>
                         </div>
 
                         <div class="mb-3 p-3 border rounded bg-light">
@@ -96,8 +103,8 @@
                             <span asp-validation-for="DataEvento" class="text-danger"></span>
                         </div>
 
-                        <input type="hidden" id="lat" name="Latitude" value="@Model.Latitude?.ToString().Replace(",", ".")" />
-                        <input type="hidden" id="lon" name="Longitude" value="@Model.Longitude?.ToString().Replace(",", ".")" />
+                        <input type="hidden" id="lat" name="Latitude" value="@latString" />
+                        <input type="hidden" id="lon" name="Longitude" value="@lonString" />
 
                         <div class="mb-3">
                             <label class="form-label">Local (Nome do Estabelecimento)</label>
@@ -154,41 +161,53 @@
         var marker;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. Tenta pegar Lat/Lon existentes
+            // Pequeno delay para garantir que o layout HTML terminou de renderizar
+            setTimeout(iniciarMapa, 100);
+        });
+
+        function iniciarMapa() {
+            // Pega os valores limpos (String com ponto) dos inputs
             var latVal = document.getElementById('lat').value;
             var lonVal = document.getElementById('lon').value;
 
-            // Define posição inicial (Do banco ou Padrão Brasil)
-            var latInicial = latVal ? parseFloat(latVal) : -14.2350;
-            var lonInicial = lonVal ? parseFloat(lonVal) : -51.9253;
-            var zoomInicial = latVal ? 16 : 4;
+            // Converte para Float
+            var latFloat = parseFloat(latVal);
+            var lonFloat = parseFloat(lonVal);
 
-            // 2. Inicia o Mapa
+            // Verifica se são números válidos e não estão vazios
+            var temCoordenadas = !isNaN(latFloat) && !isNaN(lonFloat) && latVal !== "";
+
+            // Configuração Inicial
+            var latInicial = temCoordenadas ? latFloat : -14.2350; // Brasil
+            var lonInicial = temCoordenadas ? lonFloat : -51.9253;
+            var zoomInicial = temCoordenadas ? 16 : 4;
+
+            // Cria o mapa
             map = L.map('mapaEdicao').setView([latInicial, lonInicial], zoomInicial);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
             }).addTo(map);
 
-            // 3. Se já tinha coordenada salva, coloca o pino lá
-            if(latVal && lonVal) {
+            // Adiciona o pino se existir coordenada
+            if(temCoordenadas) {
                 marker = L.marker([latInicial, lonInicial], {draggable: true}).addTo(map);
-                adicionarEventoDrag();
+                configurarDrag();
             }
 
-            // 4. Clique no mapa move/cria pino
+            // Evento de Clique no Mapa
             map.on('click', function(e) {
                 if (marker) {
                     marker.setLatLng(e.latlng);
                 } else {
                     marker = L.marker(e.latlng, {draggable: true}).addTo(map);
-                    adicionarEventoDrag();
+                    configurarDrag();
                 }
                 atualizarInputs(e.latlng.lat, e.latlng.lng);
             });
-        });
+        }
 
-        function adicionarEventoDrag() {
+        function configurarDrag() {
             marker.on('dragend', function(event) {
                 var position = marker.getLatLng();
                 atualizarInputs(position.lat, position.lng);
@@ -199,9 +218,8 @@
             var endereco = document.getElementById('inputEndereco').value;
             if(!endereco) return;
 
-            // Feedback visual
             var btn = document.querySelector('button[onclick="buscarEndereco()"]');
-            var iconOriginal = btn.innerHTML;
+            var originalIcon = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             btn.disabled = true;
 
@@ -209,8 +227,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if(data.length > 0) {
-                        var lat = data[0].lat;
-                        var lon = data[0].lon;
+                        var lat = parseFloat(data[0].lat);
+                        var lon = parseFloat(data[0].lon);
 
                         map.setView([lat, lon], 16);
 
@@ -218,7 +236,7 @@
                             marker.setLatLng([lat, lon]);
                         } else {
                             marker = L.marker([lat, lon], {draggable: true}).addTo(map);
-                            adicionarEventoDrag();
+                            configurarDrag();
                         }
                         atualizarInputs(lat, lon);
                     } else {
@@ -227,7 +245,7 @@
                 })
                 .catch(err => console.error(err))
                 .finally(() => {
-                    btn.innerHTML = iconOriginal;
+                    btn.innerHTML = originalIcon;
                     btn.disabled = false;
                 });
         }
@@ -238,7 +256,7 @@
         }
 
         function confirmarExclusao() {
-            if(confirm("Tem certeza que deseja desativar este evento? Ele não aparecerá mais na loja.")) {
+            if(confirm("Tem certeza que deseja desativar este evento?")) {
                 document.getElementById('formDesativar').submit();
             }
         }

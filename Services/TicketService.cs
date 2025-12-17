@@ -486,6 +486,29 @@ namespace TicketSales.Services
 
             
         }
+
+        // AJAX
+
+        public List<Evento> FiltrarEventos(string termo, string categoria)
+        {
+            var query = _ticketContext.Eventos
+                .Where(e => e.Ativo && e.DataEvento > DateTime.Now)
+                .AsQueryable();
+            
+         // filtrar por texto (nome ou local)
+            if (!string.IsNullOrEmpty(termo))
+            {
+                // Trim() remove espaços em branco extras   
+                termo = termo.Trim();
+                query = query.Where(e => e.Nome.Contains(termo));
+            }
+            
+            if (!string.IsNullOrEmpty(categoria))
+            {
+                query = query.Where(e => e.Categoria == categoria);
+            }
+            return query.OrderBy(e => e.DataEvento).ToList();
+        }
     }
     
 }

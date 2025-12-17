@@ -108,5 +108,12 @@ namespace TicketSales.Controllers
             };
 
         }
+
+        public IActionResult Filtrar(string termo, string categoria)
+        {
+            var listaFiltrada = _service.FiltrarEventos(termo, categoria);
+
+            return PartialView("_ListaEventos", listaFiltrada);
+        }
     }
 }

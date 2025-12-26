@@ -1,6 +1,163 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Política de Privacidade";
+    var dataAtualizacao = DateTime.Now.ToString("dd de MMMM de yyyy");
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    /* Estilos Específicos para Texto Jurídico Dark */
+    .privacy-header {
+        background: linear-gradient(135deg, #1e1e1e 0%, #000000 100%);
+        padding: 60px 0;
+        border-bottom: 1px solid #333;
+        margin-bottom: 40px;
+    }
+
+    .section-card {
+        background-color: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 25px;
+        transition: transform 0.2s ease;
+    }
+
+        .section-card:hover {
+            border-color: #ffc107; /* Amarelo ao passar o mouse */
+            transform: translateY(-2px);
+        }
+
+    .section-icon {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+
+    .privacy-text {
+        color: #b0b0b0;
+        line-height: 1.7;
+        font-size: 0.95rem;
+    }
+
+    .privacy-list li {
+        color: #b0b0b0;
+        margin-bottom: 10px;
+        padding-left: 10px;
+        border-left: 2px solid #ffc107;
+    }
+</style>
+
+<div class="privacy-header text-center">
+    <div class="container animate__animated animate__fadeInDown">
+        <i class="fa-solid fa-user-shield fa-4x text-warning mb-3"></i>
+        <h1 class="display-4 fw-bold text-white">Política de Privacidade</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 600px;">
+            Transparência total sobre como coletamos, usamos e protegemos seus dados no TicketSales.
+        </p>
+        <small class="text-white-50">Última atualização: @dataAtualizacao</small>
+    </div>
+</div>
+
+<div class="container pb-5 animate__animated animate__fadeInUp">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="section-card">
+                <div class="d-flex align-items-start">
+                    <div class="section-icon me-3 flex-shrink-0">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-3">1. Introdução</h3>
+                        <p class="privacy-text">
+                            O <strong>TicketSales</strong> está comprometido em proteger a sua privacidade. Esta Política de Privacidade explica como coletamos, usamos e compartilhamos suas informações pessoais quando você visita nosso site ou compra ingressos através de nossa plataforma. Ao utilizar nossos serviços, você concorda com as práticas descritas nesta política.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="d-flex align-items-start">
+                    <div class="section-icon me-3 flex-shrink-0">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-3">2. Dados que Coletamos</h3>
+                        <p class="privacy-text">Para processar suas compras e garantir sua segurança, coletamos as seguintes informações:</p>
+                        <ul class="list-unstyled privacy-list mt-3">
+                            <li><strong>Dados de Identificação:</strong> Nome completo, CPF (para validação do ingresso) e data de nascimento.</li>
+                            <li><strong>Dados de Contato:</strong> Endereço de e-mail e telefone celular.</li>
+                            <li><strong>Dados de Transação:</strong> Histórico de compras, eventos frequentados e assentos selecionados.</li>
+                            <li><strong>Dados Técnicos:</strong> Endereço IP, tipo de navegador e dados de geolocalização (apenas com sua permissão para o mapa).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="d-flex align-items-start">
+                    <div class="section-icon me-3 flex-shrink-0">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-3">3. Como Usamos seus Dados</h3>
+                        <p class="privacy-text">Utilizamos suas informações principalmente para:</p>
+                        <ul class="list-unstyled privacy-list mt-3">
+                            <li>Processar a compra de ingressos e gerar o seu <strong>QR Code exclusivo</strong>.</li>
+                            <li>Enviar comprovantes, ingressos em PDF e atualizações sobre os eventos (ex: mudança de horário).</li>
+                            <li>Prevenir fraudes e garantir que o ingresso seja utilizado apenas pelo titular.</li>
+                            <li>Melhorar nossa plataforma através da análise de dados anonimizados.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="d-flex align-items-start">
+                    <div class="section-icon me-3 flex-shrink-0">
+                        <i class="fa-solid fa-handshake"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-3">4. Compartilhamento de Dados</h3>
+                        <p class="privacy-text">
+                            O TicketSales não vende seus dados. Compartilhamos informações apenas nas seguintes situações estritamente necessárias:
+                        </p>
+                        <p class="privacy-text">
+                            <strong>Com Organizadores do Evento:</strong> Compartilhamos seu nome e CPF com o organizador do evento específico para que eles possam controlar a entrada (check-in) no dia do show.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="d-flex align-items-start">
+                    <div class="section-icon me-3 flex-shrink-0">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-3">5. Segurança da Informação</h3>
+                        <p class="privacy-text">
+                            Adotamos medidas rigorosas para proteger seus dados. Todas as transações são criptografadas via SSL (cadeado seguro). As senhas são armazenadas com hash criptográfico (ASP.NET Identity) e nunca são visíveis para nossa equipe.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <p class="text-muted">
+                    Tem dúvidas sobre seus dados? <a href="#" class="text-warning text-decoration-none fw-bold">Entre em contato com nosso DPO.</a>
+                </p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light rounded-pill px-4 mt-2">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Voltar para o Início
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

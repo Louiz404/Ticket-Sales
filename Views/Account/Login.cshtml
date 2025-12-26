@@ -1,13 +1,140 @@
-﻿<h2>Entrar no Sistema</h2>
-<form asp-action="Login" method="post">
-    <div class="mb-3">
-        <label>Email</label>
-        <input name="email" class="form-control" />
+﻿@{
+    ViewData["Title"] = "Entrar";
+}
+
+<style>
+    .login-wrapper {
+        min-height: 85vh; /* Altura quase total */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, rgba(255, 193, 7, 0.05) 0%, transparent 70%);
+    }
+
+    .card-glass {
+        background: rgba(30, 30, 30, 0.6);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-control-dark {
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+
+        .form-control-dark:focus {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            border-color: #ffc107 !important; /* Amarelo ao focar */
+            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+        }
+
+    .input-group-text {
+        background-color: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffc107; /* Ícones amarelos */
+    }
+</style>
+
+<div class="login-wrapper animate__animated animate__fadeIn">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle mb-3 shadow-sm"
+                         style="width: 90px; height: 90px; border: 1px solid rgba(255,193,7,0.3);">
+                        <i class="fa-solid fa-user-astronaut fa-3x text-warning"></i>
+                    </div>
+                    <h2 class="fw-bold text-white mb-1">Bem-vindo de volta!</h2>
+                    <p class="text-white-50 small">Acesse sua conta para gerenciar seus ingressos.</p>
+                </div>
+
+                <div class="card card-glass">
+                    <div class="card-body p-4 p-md-5">
+                        <form asp-action="Login" method="post">
+
+                            <div asp-validation-summary="All" class="text-danger small mb-3 text-center bg-dark rounded p-2" style="display:none;"></div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-white-50 small fw-bold text-uppercase ls-1">E-mail</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </span>
+                                    <input name="email" class="form-control form-control-lg form-control-dark" placeholder="exemplo@email.com" required />
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-white-50 small fw-bold text-uppercase ls-1">Senha</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </span>
+
+                                    <input id="inputSenha" name="password" type="password" class="form-control form-control-lg form-control-dark" placeholder="••••••••" required />
+
+                                    <button class="btn btn-outline-secondary border-start-0" type="button" onclick="toggleSenha()"
+                                            style="background-color: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.1);">
+                                        <i id="iconSenha" class="fa-solid fa-eye text-muted"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-warning btn-lg fw-bold text-dark shadow-lg" style="transition: transform 0.2s;">
+                                    ENTRAR <i class="fa-solid fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+
+                            <div class="text-center pt-2">
+                                <p class="text-white-50 small mb-0">Ainda não tem uma conta?</p>
+                                <a asp-action="Register" class="text-warning fw-bold text-decoration-none hover-scale d-inline-block mt-1">
+                                    Criar conta gratuitamente
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Senha</label>
-        <input name="password" type="password" class="form-control" />
-    </div>
-    <button class="btn btn-primary">Entrar</button>
-    <a asp-action="Register">Não tem conta? Cadastre-se</a>
-</form>
+</div>
+
+@section Scripts {
+    <script>
+        // Função para mostrar/esconder senha
+        function toggleSenha() {
+            var input = document.getElementById("inputSenha");
+            var icon = document.getElementById("iconSenha");
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+                icon.classList.add("text-warning"); // Destaca o ícone quando visível
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+                icon.classList.remove("text-warning");
+            }
+        }
+
+        // Efeito simples de hover no botão
+        document.querySelector('button[type="submit"]').addEventListener('mouseover', function() {
+            this.style.transform = 'scale(1.02)';
+        });
+        document.querySelector('button[type="submit"]').addEventListener('mouseout', function() {
+            this.style.transform = 'scale(1)';
+        });
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

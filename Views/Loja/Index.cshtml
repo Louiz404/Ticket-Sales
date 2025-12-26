@@ -4,80 +4,102 @@
     ViewData["Title"] = "Loja de Ingressos";
 }
 
-<div class="bg-dark text-white text-center py-5 mb-4 shadow" style="border-radius: 0 0 20px 20px;">
-    <h1 class="display-5 fw-bold"><i class="fa-solid fa-music"></i> Próximos Eventos</h1>
-    <p class="lead mb-4">Encontre seu próximo show, teatro ou palestra.</p>
-    
-    <div class="container">
+<div class="position-relative text-center py-5 mb-5 shadow-lg animate__animated animate__fadeInDown"
+     style="background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%); border-bottom: 3px solid #ffc107; border-radius: 0 0 30px 30px;">
+
+    <div class="container position-relative" style="z-index: 2;">
+        <h1 class="display-4 fw-bold text-white mb-2">
+            <i class="fa-solid fa-ticket text-warning me-2"></i>Próximos Eventos
+        </h1>
+        <p class="lead text-white-50 mb-4">Garanta seu lugar nos melhores shows, teatros e palestras.</p>
+
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="input-group input-group-lg shadow-lg">
-                    <span class="input-group-text bg-white border-0 text-muted">
+            <div class="col-lg-8 col-xl-7">
+                <div class="input-group input-group-lg shadow rounded-5 overflow-hidden border border-secondary">
+                    <span class="input-group-text bg-white border-0 ps-4 text-warning">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    
-                    <input type="text" id="inputBusca" class="form-control border-0" placeholder="O que você procura? Digite nome ou local..." autocomplete="off" />
-                    
-                    <select id="selectCategoria" class="form-select border-0 border-start" style="max-width: 180px; background-color: #f8f9fa;">
+
+                    <input type="text" id="inputBusca" class="form-control border-0 py-3"
+                           placeholder="Busque por nome, artista ou local..."
+                           autocomplete="off" />
+
+                    <select id="selectCategoria" class="form-select border-0 border-start bg-light text-secondary fw-bold"
+                            style="max-width: 160px;">
                         <option value="">Todas</option>
                         <option value="Show">Shows</option>
+                        <option value="Música">Música</option>
                         <option value="Teatro">Teatro</option>
                         <option value="Stand-up">Stand-up</option>
                         <option value="Palestra">Palestras</option>
                         <option value="Esporte">Esportes</option>
                     </select>
                 </div>
-                <small class="text-white-50 mt-2 d-block">A busca é automática enquanto você digita.</small>
+                <small class="text-white-50 mt-2 d-block animate__animated animate__fadeIn animate__delay-1s">
+                    <i class="fa-solid fa-bolt text-warning"></i> Busca instantânea
+                </small>
             </div>
         </div>
     </div>
+
+    <div class="position-absolute top-0 start-0 w-100 h-100"
+         style="background-image: radial-gradient(circle at 20% 50%, rgba(255, 193, 7, 0.05) 0%, transparent 50%); pointer-events: none;"></div>
 </div>
 
-<div class="container">
-    <div id="containerEventos" class="row">
+<div class="container mb-5">
+    <div id="containerEventos" class="row g-4">
         <partial name="_ListaEventos" model="Model" />
+    </div>
+
+    <div id="loading" class="text-center py-5 d-none">
+        <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+        <p class="text-muted mt-2">Buscando eventos...</p>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Função principal de busca
+        let timeout = null; // Variável para o Debounce
+
         function atualizarLista() {
-            // 1. Pega os valores dos campos
             var termo = document.getElementById('inputBusca').value;
             var categoria = document.getElementById('selectCategoria').value;
-
-            // 2. Efeito visual de "Carregando" (deixa transparente)
             var container = document.getElementById('containerEventos');
-            container.style.opacity = '0.5';
-            container.style.transition = 'opacity 0.2s';
+            var loading = document.getElementById('loading');
 
-            // 3. Chama o Backend (Controller -> Service)
-            // Usamos encodeURIComponent para evitar erros com espaços ou acentos na URL
+            container.style.opacity = '0.3';
+            loading.classList.remove('d-none');
+
+            // Faz a chamada ao servidor
             fetch(`/Loja/Filtrar?termo=${encodeURIComponent(termo)}&categoria=${encodeURIComponent(categoria)}`)
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na rede');
-                    }
-                    return response.text(); // O Controller devolve HTML puro (PartialView)
+                    if (!response.ok) throw new Error('Erro na rede');
+                    return response.text();
                 })
                 .then(html => {
-                    // 4. Substitui o conteúdo antigo pelo novo filtrado
                     container.innerHTML = html;
-                    container.style.opacity = '1'; // Volta ao normal
+
+                    container.style.opacity = '1';
+                    loading.classList.add('d-none');
                 })
                 .catch(error => {
                     console.error('Erro:', error);
                     container.style.opacity = '1';
+                    loading.classList.add('d-none');
                 });
         }
 
-        // === EVENTOS QUE DISPARAM A BUSCA ===
-        
-        // Dispara quando o usuário solta uma tecla no campo de texto
-        document.getElementById('inputBusca').addEventListener('keyup', atualizarLista);
-        
-        // Dispara quando o usuário muda a opção do select
+        // === EVENTOS COM DEBOUNCE ===
+        // Isso evita fazer 10 requisições se o usuário digitar rápido.
+        // Só busca 500ms depois que ele PARAR de digitar.
+
+        document.getElementById('inputBusca').addEventListener('keyup', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(atualizarLista, 500);
+        });
+
         document.getElementById('selectCategoria').addEventListener('change', atualizarLista);
     </script>
 }

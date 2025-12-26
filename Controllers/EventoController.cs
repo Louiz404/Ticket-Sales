@@ -1,24 +1,31 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TicketSales.Models;
 using TicketSales.Services;
-using System.Security.Claims;
 
 namespace TicketSales.Controllers
 {
     [Authorize(Roles = "Admin,Organizador")]
     public class EventoController : Controller
-{
+    {
         private readonly TicketService _service;
-        private readonly IWebHostEnvironment _webHostEnvironment; // Acesssar pastas
-        
-        
-        public EventoController(TicketService service, IWebHostEnvironment webHostEnvironment)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly UserManager<IdentityUser> _userManager;
+
+
+        public EventoController(
+            TicketService service,
+            IWebHostEnvironment webHostEnvironment,
+            UserManager<IdentityUser> userManager
+        )
         {
             _service = service;
             _webHostEnvironment = webHostEnvironment;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -68,11 +75,11 @@ namespace TicketSales.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 _service.CriarEvento(
-                    evento.Nome, 
-                    evento.QuantidadeLugares, 
-                    evento.Valor, 
-                    evento.Categoria, 
-                    nomeArquivo, 
+                    evento.Nome,
+                    evento.QuantidadeLugares,
+                    evento.Valor,
+                    evento.Categoria,
+                    nomeArquivo,
                     userId,
                     evento.Local,
                     evento.Endereco,
@@ -80,7 +87,7 @@ namespace TicketSales.Controllers
                     evento.Latitude,
                     evento.Longitude
                     );
-                
+
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -144,7 +151,7 @@ namespace TicketSales.Controllers
                 return View(evento);
             }
         }
-        
+
         [HttpPost]
         public IActionResult Desativar(int id)
         {
@@ -152,13 +159,37 @@ namespace TicketSales.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var isAdmin = User.IsInRole("Admin");
-                
+
                 _service.DesativarEvento(id, userId, isAdmin);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 TempData["Erro, não foi possivel concluir a ação"] = ex.Message;
             }
-                return RedirectToAction("Index");
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Ativar(int id)
+        {
+            try
+            {
+                var userId = _userManager.GetUserId(User);
+                var isAdmin = User.IsInRole("Admin");
+
+                _service.AtivarEvento(id, isAdmin, userId);
+
+                TempData["Sucesso"] = "Evento reativado com sucesso! Ele voltou para a loja.";
+
+                return RedirectToAction(nameof(Editar), new { id = id });
+            }
+            catch (Exception ex)
+            {
+                TempData["Erro"] = $"Erro ao ativar: {ex.Message}";
+                return RedirectToAction(nameof(Editar), new { id = id });
+
+            }
         }
     }
 }

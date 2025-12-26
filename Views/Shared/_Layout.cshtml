@@ -2,8 +2,15 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
+@{
+    // Variáveis para facilitar a lógica no HTML
+    bool isAdmin = User.IsInRole("Admin");
+    bool isOrg = User.IsInRole("Organizador");
+    bool isStaff = isAdmin || isOrg; // Se for qualquer um da equipe
+}
+
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-bs-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,58 +20,126 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <style>
+        .brand-text {
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+            .nav-link.active {
+                color: #ffc107 !important;
+            }
+
+        .dropdown-menu {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+        }
+
+        .dropdown-item {
+            color: #e0e0e0;
+        }
+
+            .dropdown-item:hover {
+                background-color: #333;
+                color: #ffc107;
+            }
+    </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
+
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Loja" asp-action="Index">
-                    <i class="fa-solid fa-ticket"></i> TicketSales
+        <nav class="navbar navbar-expand-lg navbar-dark border-bottom border-secondary fixed-top" style="background-color: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px);">
+            <div class="container">
+
+                <a class="navbar-brand d-flex align-items-center" asp-controller="Loja" asp-action="Index">
+                    <div class="rounded px-2 py-1 me-2 d-flex align-items-center justify-content-center shadow"
+                         style="background: linear-gradient(135deg, #FF8C00 0%, #FFD700 100%); width: 40px; height: 35px;">
+
+                        <i class="fa-solid fa-ticket fa-lg text-white" style="transform: rotate(-15deg); text-shadow: 0 1px 2px rgba(0,0,0,0.3);"></i>
+
+                    </div>
+                    <span class="brand-text fw-bold text-white">TICKET<span style="color: #FFD700;">SALES</span></span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav flex-grow-1 ms-3">
+
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Loja" asp-action="Index">Vitrine</a>
+                            <a class="nav-link" asp-controller="Loja" asp-action="Index">
+                                <i class="fa-solid fa-store me-1"></i> Vitrine
+                            </a>
                         </li>
 
-                        @if (User.IsInRole("Admin"))
+                        @if (SignInManager.IsSignedIn(User))
                         {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-warning" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa-solid fa-gear"></i> Painel Admin
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" asp-controller="Evento" asp-action="Index">Gerenciar Eventos</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Evento" asp-action="Criar">Novo Evento</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" asp-controller="Cliente" asp-action="Index">Gerenciar Clientes</a></li>
-                                </ul>
-                            </li>
+                            // 2. DASHBOARD (Só para Staff: Admin ou Organizador)
+                            @if (isStaff)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                        <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
+                                    </a>
+                                </li>
+                            }
+                            // 3. MEUS INGRESSOS (Só para Clientes Comuns)
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-warning" asp-controller="Loja" asp-action="MeusIngressos">
+                                        <i class="fa-solid fa-wallet me-1"></i> Meus Ingressos
+                                    </a>
+                                </li>
+                            }
+
+                            // 4. MENU ADMINISTRATIVO (Dropdown)
+                            @if (isStaff)
+                            {
+                                <li class="nav-item dropdown ms-lg-3">
+                                    <a class="nav-link dropdown-toggle bg-dark border border-secondary rounded px-3" href="#" id="adminDropdown" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-user-shield text-warning me-1"></i>
+                                        @(isAdmin ? "Admin" : "Organizador")
+                                    </a>
+                                    <ul class="dropdown-menu shadow-lg animate__animated animate__fadeIn" aria-labelledby="adminDropdown">
+                                        <li><h6 class="dropdown-header text-uppercase small text-muted">Gestão de Eventos</h6></li>
+                                        <li><a class="dropdown-item" asp-controller="Evento" asp-action="Index"><i class="fa-solid fa-list me-2"></i>Meus Eventos</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Evento" asp-action="Criar"><i class="fa-solid fa-plus me-2"></i>Novo Evento</a></li>
+
+                                        @if (isAdmin)
+                                        {
+                                            <li><hr class="dropdown-divider bg-secondary"></li>
+                                            <li><h6 class="dropdown-header text-uppercase small text-muted">Sistema</h6></li>
+                                            <li><a class="dropdown-item" asp-controller="Cliente" asp-action="Index"><i class="fa-solid fa-users me-2"></i>Gerenciar Usuários</a></li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
                         }
                     </ul>
 
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav align-items-center">
                         @if (SignInManager.IsSignedIn(User))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-light" title="Gerenciar Conta">
-                                    Olá, @User.Identity?.Name!
-                                    @if (User.IsInRole("Admin"))
-                                    {
-                                        <span class="badge bg-warning text-dark">Admin</span>
-                                    }
-                                </a>
+                            <li class="nav-item me-2">
+                                <span class="nav-link" style="cursor: default;">
+                                    Olá, <strong class="text-white">@User.Identity?.Name</strong>
+                                </span>
                             </li>
                             <li class="nav-item">
                                 <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit" class="nav-link btn btn-link text-light">
-                                        <i class="fa-solid fa-right-from-bracket"></i> Sair
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                        <i class="fa-solid fa-power-off"></i> Sair
                                     </button>
                                 </form>
                             </li>
@@ -72,13 +147,11 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Account" asp-action="Register">
-                                    <i class="fa-solid fa-user-plus"></i> Criar Conta
-                                </a>
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">Criar Conta</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Account" asp-action="Login">
-                                    <i class="fa-solid fa-right-to-bracket"></i> Entrar
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-warning btn-sm fw-bold rounded-pill px-4 text-dark shadow-sm" asp-controller="Account" asp-action="Login">
+                                    Entrar
                                 </a>
                             </li>
                         }
@@ -88,15 +161,21 @@
         </nav>
     </header>
 
-    <div class="container">
+    <div class="container" style="margin-top: 90px;">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted bg-light mt-auto">
-        <div class="container py-3 text-center">
-            &copy; 2025 - TicketSales - Sua loja de ingressos favorita
+    <footer class="border-top footer mt-auto" style="background-color: #1a1a1a; border-color: #333 !important;">
+        <div class="container py-4 text-center text-muted">
+            <div class="mb-2">
+                &copy; 2025 -
+                <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none" title="Ver Política de Privacidade">
+                    <strong class="text-white brand-text">TICKET<span class="text-warning">SALES</span></strong>
+                </a>
+            </div>
+            <small>Plataforma de Eventos • Feito com .NET 10</small>
         </div>
     </footer>
 

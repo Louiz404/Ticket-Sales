@@ -1,25 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Compra Realizada";
+    ViewData["Title"] = "Sucesso!";
 }
 
-<div class="container mt-5 text-center">
-    <div class="card shadow-sm p-5 border-success" style="border-top: 5px solid #28a745;">
-        <div class="card-body">
-            <h1 class="display-4 text-success mb-3">
-                🎉 Compra Realizada!
-            </h1>
-
-            <p class="lead">Obrigado pela sua compra.</p>
-            <p>Seus assentos foram reservados com sucesso.</p>
-
-            <hr class="my-4">
-
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a asp-action="Index" class="btn btn-primary btn-lg px-4 gap-3">
-                    Comprar mais Ingressos
-                </a>
-
+<div class="container mt-5 text-center animate__animated animate__zoomIn">
+    <div class="card shadow-lg border-0 p-5 d-inline-block" style="background-color: #1e1e1e; max-width: 600px;">
+        <div class="mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-25" style="width: 100px; height: 100px;">
+                <i class="fa-solid fa-check fa-4x text-success"></i>
             </div>
+        </div>
+
+        <h1 class="display-5 fw-bold text-white mb-3">Compra Confirmada!</h1>
+        <p class="lead text-muted mb-4">Seus ingressos já estão disponíveis na sua carteira digital.</p>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-action="MeusIngressos" class="btn btn-outline-light px-4">
+                Ver Ingressos
+            </a>
+            <a asp-action="Index" class="btn btn-warning px-4 fw-bold text-dark">
+                Comprar Mais
+            </a>
         </div>
     </div>
 </div>

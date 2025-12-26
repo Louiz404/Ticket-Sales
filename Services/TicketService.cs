@@ -295,7 +295,26 @@ namespace TicketSales.Services
             _ticketContext.SaveChanges();
         }
 
-        // --- MÉTODOS DE CLIENTE ---
+        public void AtivarEvento (int id, bool isAdmin, string userId)
+        {
+            var evento = _ticketContext.Eventos.Find(id);
+
+            if (evento == null) throw new Exception("Evento não encontrado.");
+            
+            if (!isAdmin)
+            {
+                throw new Exception("Apenas administradores podem reativar eventos. Entre em contato com o suporte.");
+            }
+            if (evento != null)
+            {
+                evento.Ativo = true;
+
+                _ticketContext.SaveChanges();
+            }
+            
+        }
+
+        // --- MÉTODOS DE USUARIO ---
 
         public List<Cliente> ListarClientesAtivos()
         {
@@ -308,7 +327,7 @@ namespace TicketSales.Services
 
             if (idade < 18) throw new ArgumentException("É necessário ser maior de 18 anos");
 
-            if (string.IsNullOrEmpty(email)) /*|| !email.Contains("@"))*/ throw new ArgumentException("Digite um E-mail válido");
+            if (string.IsNullOrEmpty(email) || !email.Contains('@')) throw new ArgumentException("Digite um E-mail válido");
 
             var clientes = new Cliente
             {
@@ -342,7 +361,7 @@ namespace TicketSales.Services
 
             if (idade < 18) throw new ArgumentException("É necessário ser maior de 18 anos");
 
-            if (string.IsNullOrEmpty(email)) /*|| !email.Contains("@"))*/ throw new ArgumentException("Digite um E-mail válido");
+            if (string.IsNullOrEmpty(email) || !email.Contains('@')) throw new ArgumentException("Digite um E-mail válido");
 
             var clientes = new Cliente
             {
@@ -378,17 +397,26 @@ namespace TicketSales.Services
             var eventosIds = queryEventos.Select(e => e.Id).ToList();
 
             var queryCompras = _ticketContext.Compras
-                .Where(c => eventosIds.Contains(c.EventoId));
+                .Include(c => c.Evento)
+                .AsQueryable();
 
-            var queryAssentos = _ticketContext.Assentos
-                .Where(a => eventosIds.Contains(a.EventoId) && a.Ocupado);
+            if (!isAdmin)
+            {
+                queryCompras = queryCompras.Where(c => eventosIds.Contains(c.EventoId));
+            }
 
+            var queryAssentos = _ticketContext.Assentos.AsQueryable();
 
-            model.FaturamentoTotal = _ticketContext.Compras.Sum(c => c.ValorTotal);
+            if (isAdmin)
+            {
+                queryAssentos = queryAssentos.Where(a => eventosIds.Contains(a.EventoId));
+            }
 
-            model.TotalIngressosVendidos = _ticketContext.Assentos.Count(a => a.Ocupado);
+            model.FaturamentoTotal = queryCompras.Sum(c => c.ValorTotal);
 
-            model.TotalEventosAtivos = _ticketContext.Eventos.Count(e => e.Ativo);
+            model.TotalIngressosVendidos = queryAssentos.Count(a => a.Ocupado);
+
+            model.TotalEventosAtivos = queryEventos.Count(e => e.Ativo);
 
             if (isAdmin)
             {
@@ -401,17 +429,16 @@ namespace TicketSales.Services
                 model.TotalClientes = queryCompras.Select(c => c.ClienteId).Distinct().Count();
             }
 
-            var dadosGraficos = _ticketContext.Compras
-                .Include(c => c.Evento)
-                .GroupBy(c => c.Evento.Nome)
-                .Select(grupo => new
-                {
-                    NomeEvento = grupo.Key,
-                    TotalVendido = grupo.Sum(c => c.ValorTotal)
-                })
-                .OrderByDescending(x => x.TotalVendido)
-                .Take(5) // Pega só o top 5
-                .ToList();
+            var dadosGraficos = queryCompras
+            .GroupBy(c => c.Evento.Nome)
+            .Select(grupo => new
+        {
+            NomeEvento = grupo.Key,
+            TotalVendido = grupo.Sum(c => c.ValorTotal)
+        })
+            .OrderByDescending(x => x.TotalVendido)
+            .Take(5)
+            .ToList();
 
             model.LabelsGrafico = dadosGraficos.Select(x => x.NomeEvento).ToList();
             model.DadosGrafico = dadosGraficos.Select(x => x.TotalVendido).ToList();
@@ -442,7 +469,7 @@ namespace TicketSales.Services
                             $"DATA: {compra.Evento.DataEvento:dd/MM/yyyy HH:mm}\n" +
                             $"ASSENTOS: {string.Join(", ", compra.AssentosSelecionados.Select(a => a.CodigoAssento))}\n" +
                             $"VALOR: {compra.ValorTotal:N2} \n" +
-                            $"CLIENTE: {compra.Evento.Nome}\n";
+                            $"CLIENTE: {compra.Cliente.Nome}\n";
 
             using (var qrGenerator = new QRCodeGenerator())
             {
@@ -495,10 +522,8 @@ namespace TicketSales.Services
                 .Where(e => e.Ativo && e.DataEvento > DateTime.Now)
                 .AsQueryable();
             
-         // filtrar por texto (nome ou local)
             if (!string.IsNullOrEmpty(termo))
             {
-                // Trim() remove espaços em branco extras   
                 termo = termo.Trim();
                 query = query.Where(e => e.Nome.Contains(termo));
             }

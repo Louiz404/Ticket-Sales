@@ -31,7 +31,7 @@ namespace TicketSales.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var isAdmin = User.IsInRole("admin");
+            var isAdmin = User.IsInRole("Admin");
 
             var viewModel = _service.ObterDadosDashboard(userId, isAdmin);
 

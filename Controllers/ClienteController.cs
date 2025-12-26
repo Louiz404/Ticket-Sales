@@ -1,67 +1,98 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TicketSales.Data;
 using TicketSales.Models;
-using TicketSales.Services;
 
 namespace TicketSales.Controllers
 {
+    [Authorize(Roles = "Admin")] // Só Admin acessa esse controller
     public class ClienteController : Controller
     {
-        private readonly TicketService _service;
-        public ClienteController(TicketService service)
+        private readonly TicketContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public ClienteController(TicketContext context, UserManager<IdentityUser> userManager)
         {
-            _service = service;
+            _context = context;
+            _userManager = userManager;
         }
 
-        // GET
-        public ActionResult Index()
+        public IActionResult Index()
         {
-            var clientes = _service.ListarClientesAtivos();
+            var clientes = _context.Clientes.OrderBy(c => c.Nome).ToList();
             return View(clientes);
         }
 
-
-        // GET:
-        public ActionResult Criar()
+        // === EDITAR (GET) ===
+        public IActionResult Editar(int id)
         {
-            return View();
+            var cliente = _context.Clientes.Find(id);
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
         }
 
-        // POST: 
+        // === EDITAR (POST) ===
         [HttpPost]
-        public ActionResult Criar(Cliente cliente)
+        public IActionResult Editar(Cliente cliente)
         {
-            try
+            if (ModelState.IsValid)
             {
-                _service.CadastrarCliente(cliente.Nome, cliente.Email, cliente.Idade);
-
-                TempData["Sucesso"] = "Cliente cadastrado com sucesso!";
-                return RedirectToAction("Index");
+                _context.Clientes.Update(cliente);
+                _context.SaveChanges();
+                TempData["Sucesso"] = "Dados do cliente atualizados com sucesso!";
+                return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, $"Erro ao cadastrar cliente: {ex.Message}");
-                return View(cliente);
-            }
+            return View(cliente);
         }
 
-        // POST: 
+        // === DESATIVAR ===
         [HttpPost]
-        public ActionResult Desativar(int id)
+        public IActionResult Desativar(int id)
         {
-            try
+            var cliente = _context.Clientes.Find(id);
+            if (cliente != null)
             {
-                _service.DesativarCliente(id);
-                TempData["Sucesso"] = "Cliente desativado com sucesso!";
+                cliente.Ativo = false;
+                _context.SaveChanges();
+                TempData["Sucesso"] = "Cliente desativado com sucesso.";
             }
-            catch (Exception ex)
-            {
-                TempData["Erro"] = $"Erro ao desativar cliente: {ex.Message}";
-            }
-            
-            return RedirectToAction("Index");
-            
+            return RedirectToAction(nameof(Index));
         }
-     
+
+        [HttpPost]
+        public async Task<IActionResult> ResetarSenha(int id)
+        {
+            var cliente = _context.Clientes.Find(id);
+            if (cliente == null) return NotFound();
+
+            // 1. Acha o usuário de login pelo ID vinculado
+            var user = await _userManager.FindByIdAsync(cliente.UsuarioId);
+
+            if (user != null)
+            {
+                // 2. Gera um token de reset (permissão para trocar senha)
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                // 3. Força a nova senha padrão
+                var resultado = await _userManager.ResetPasswordAsync(user, token, "Ticket@2025");
+
+                if (resultado.Succeeded)
+                {
+                    TempData["Sucesso"] = $"Senha de {cliente.Nome} resetada para 'Ticket@2025'.";
+                }
+                else
+                {
+                    TempData["Erro"] = "Erro ao resetar senha no sistema de login.";
+                }
+            }
+            else
+            {
+                TempData["Erro"] = "Usuário de login não encontrado.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

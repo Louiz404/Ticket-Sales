@@ -1,42 +1,107 @@
 ﻿@model List<TicketSales.Models.Cliente>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Clientes Cadastrados</h2>
-        <a asp-action="Criar" class="btn btn-primary">Novo Cliente</a>
+@{
+    ViewData["Title"] = "Gerenciar Clientes";
+}
+
+<div class="container mt-4 animate__animated animate__fadeIn">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-white"><i class="fa-solid fa-users text-primary me-2"></i>Gerenciar Clientes</h2>
+            <p class="text-muted">Visualize e controle os usuários cadastrados.</p>
+        </div>
     </div>
 
     @if (TempData["Sucesso"] != null)
     {
-        <div class="alert alert-success">@TempData["Sucesso"]</div>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 bg-success text-white" role="alert">
+            <i class="fa-solid fa-circle-check"></i> @TempData["Sucesso"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>ID (Use na Compra)</th>
-                <th>Nome</th>
-                <th>E-mail</th>
-                <th>Idade</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td class="fw-bold text-center">@item.Id</td>
-                    <td>@item.Nome</td>
-                    <td>@item.Email</td>
-                    <td>@item.Idade</td>
-                    <td>
-                        <form asp-action="Desativar" method="post" onsubmit="return confirm('Desativar este cliente?');">
-                            <input type="hidden" name="id" value="@item.Id" />
-                            <button class="btn btn-danger btn-sm">Desativar</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="card shadow border-0 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-white">
+                    <thead style="background-color: rgba(255,255,255,0.05); color: #aaa;">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Cliente</th>
+                            <th>Contato</th>
+                            <th>Idade</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-user-slash fa-3x mb-3"></i>
+                                    <p>Nenhum cliente encontrado.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr style="border-bottom: 1px solid #333;">
+                                    <td class="ps-4">
+                                        <span class="badge bg-dark border border-secondary text-muted">#@item.Id</span>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3 text-white fw-bold" style="width: 40px; height: 40px;">
+                                                @item.Nome.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <span class="fw-bold text-white">@item.Nome</span>
+                                        </div>
+                                    </td>
+
+                                    <td><span class="text-muted">@item.Email</span></td>
+
+                                    <td>@item.Idade anos</td>
+
+                                    <td>
+                                        @if (item.Ativo)
+                                        {
+                                            <span class="badge bg-success bg-opacity-25 text-success">Ativo</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge bg-danger bg-opacity-25 text-danger">Inativo</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-action="Editar" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Editar Dados">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+
+                                            @if (item.Ativo)
+                                            {
+                                                <form asp-action="Desativar" method="post" style="display:inline;" onsubmit="return confirm('Desativar o acesso deste cliente?');">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <button class="btn btn-sm btn-outline-danger ms-1" title="Desativar Acesso">
+                                                        <i class="fa-solid fa-ban"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>

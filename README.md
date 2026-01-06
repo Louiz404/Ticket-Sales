@@ -144,4 +144,4 @@ Ao rodar o projeto pela primeira vez, o sistema (`SeedData.cs`) criará automati
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Sinta-se à vontade para contribuir!
+Este projeto está sob a licença GNU.
